@@ -1,0 +1,59 @@
+# .gitattributes
+# Normalize line endings and improve diffs/merges across platforms.
+
+# --- Line ending normalization ---
+# Treat all files as text by default and normalize to LF in repo.
+* text=auto eol=lf
+
+# Windows scripts can remain CRLF if you keep them
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Shell scripts must be LF
+*.sh  text eol=lf
+
+# --- Diff friendliness for common formats ---
+*.md   text
+*.txt  text
+*.py   text
+*.toml text
+*.ini  text
+*.cfg  text
+*.yaml text
+*.yml  text
+*.json text
+
+# Make tabular data diff nicely
+*.csv  text
+*.tsv  text
+
+# Jupyter notebooks are JSON; consider treating as text (still noisy)
+*.ipynb text
+
+# --- Binary files (no diff) ---
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.pdf  binary
+*.zip  binary
+*.gz   binary
+*.7z   binary
+
+# Office
+*.docx binary
+*.xlsx binary
+*.pptx binary
+
+# Audio/video (relevant for your lab work)
+*.wav  binary
+*.mp3  binary
+*.mp4  binary
+*.m4a  binary
+
+# --- Optional: keep generated artifacts from being treated as source ---
+# Uncomment if you commit built docs or dist artifacts:
+# dist/**    linguist-generated
+# build/**   linguist-generated
+# docs/_build/** linguist-generated

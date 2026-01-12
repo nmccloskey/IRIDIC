@@ -1,0 +1,29 @@
+# .editorconfig
+# Standardize basic whitespace and newline behavior across editors.
+# See: https://editorconfig.org/
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+# Markdown: allow intentional trailing spaces (hard line breaks)
+[*.md]
+trim_trailing_whitespace = false
+
+# YAML: often 2-space indent is conventional
+[*.{yml,yaml}]
+indent_size = 2
+
+# JSON: 2-space is common; adjust if you prefer 4
+[*.json]
+indent_size = 2
+
+# Batch/PowerShell on Windows sometimes prefer CRLF
+[*.{bat,cmd,ps1}]
+end_of_line = crlf
