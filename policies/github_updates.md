@@ -6,11 +6,6 @@ Development Itineraries for Codebases\
 **Last Updated:** 2026-02-21
 
 ------------------------------------------------------------------------
-## 0. Context in developmental trajectory
-
-Much of the below are described as policies to be more faithfully adopted moving forward. The point of these documents is to describe both where I am and where I'd like to go as a programmer. Accordingly, my past work will abound with inconsistencies regarding these protocols.
-
-------------------------------------------------------------------------
 
 ## 1. Purpose
 
