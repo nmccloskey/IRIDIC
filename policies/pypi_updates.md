@@ -24,9 +24,57 @@ This policy aligns with:
 -   Semantic Versioning (https://semver.org)
 -   PyPA packaging guide (https://packaging.python.org)
 
+It also enforces a **One Source of Truth (SSOT)** principle for
+functional metadata.
+
 ------------------------------------------------------------------------
 
-# 2. High-Level Release Workflow
+# 2. One Source of Truth Policy
+
+## 2.1 Functional Metadata
+
+Functional metadata (values read programmatically by the package) must
+exist in exactly one authoritative location.
+
+For versioning:
+
+-   The single source of truth is `pyproject.toml`.
+-   The package must **not** hardcode version strings in `__init__.py`.
+
+Instead, use dynamic retrieval via `importlib.metadata`:
+
+``` python
+from importlib.metadata import PackageNotFoundError, version
+
+try:
+    __version__ = version("rascal-speech")
+except PackageNotFoundError:  # pragma: no cover
+    __version__ = "0.0.0"
+```
+
+This ensures:
+
+-   The installed distribution defines the version.
+-   There is no risk of version drift.
+-   The package reflects the built artifact.
+
+------------------------------------------------------------------------
+
+## 2.2 Aesthetic Metadata
+
+Certain locations (e.g., README version badge) may repeat the version
+string for clarity.
+
+This duplication is **aesthetic**, not functional.
+
+Guiding rule:
+
+> Functional values must be singular.
+> Display values may duplicate if necessary.
+
+------------------------------------------------------------------------
+
+# 3. High-Level Release Workflow
 
 ### Development Cycle
 
@@ -36,7 +84,7 @@ This policy aligns with:
 4.  Merge `dev` → `main`
 5.  Test web app (if applicable)
 6.  Iterate if necessary (repeat merge cycle)
-7.  Bump version on `main`
+7.  Bump version in `pyproject.toml` (main only)
 8.  Build + test locally
 9.  Upload to PyPI
 10. Merge `main` → `dev`
@@ -45,7 +93,7 @@ Public releases always reflect the `main` branch.
 
 ------------------------------------------------------------------------
 
-# 3. Branch Discipline During Release
+# 4. Branch Discipline During Release
 
 ### Upload From `main` Only
 
@@ -66,7 +114,7 @@ You are publishing the currently checked-out branch.
 
 ------------------------------------------------------------------------
 
-# 4. Canonical Release Sequence
+# 5. Canonical Release Sequence
 
 ### STEP 1 --- Finish Work in `dev`
 
@@ -74,7 +122,8 @@ Ensure:
 
 -   All features are complete
 -   Tests pass
--   Version is still the previous one (e.g., `1.0.0`)
+-   Version in `pyproject.toml` is still the previous one (e.g.,
+    `1.0.0`)
 
 ------------------------------------------------------------------------
 
@@ -87,18 +136,15 @@ git merge dev
 
 ------------------------------------------------------------------------
 
-### STEP 3 --- Bump Version on `main`
+### STEP 3 --- Bump Version (Single Location)
 
-Update version in:
-
--   `pyproject.toml`
--   `__init__.py` (if applicable)
-
-Example:
+Update version **only in `pyproject.toml`**:
 
 ``` toml
 version = "1.0.1"
 ```
+
+Do not edit `__init__.py`.
 
 Commit:
 
@@ -163,7 +209,7 @@ This prevents version divergence.
 
 ------------------------------------------------------------------------
 
-# 5. TestPyPI Loop (Recommended for Early Releases)
+# 6. TestPyPI Loop (Recommended for Early Releases)
 
 ### Local Fast Test
 
@@ -184,9 +230,9 @@ Fix → bump → rebuild → reupload → retest.
 
 ------------------------------------------------------------------------
 
-# 6. Versioning Rules
+# 7. Versioning Rules
 
-## 6.1 Versions Are Immutable
+## 7.1 Versions Are Immutable
 
 Once uploaded to PyPI or TestPyPI:
 
@@ -196,11 +242,9 @@ Once uploaded to PyPI or TestPyPI:
 
 Every upload requires a new version string.
 
-If `0.0.1a1` contains a typo → next version must be `0.0.1a2`.
-
 ------------------------------------------------------------------------
 
-## 6.2 Pre-Release Scheme (PEP 440)
+## 7.2 Pre-Release Scheme (PEP 440)
 
 Valid progression:
 
@@ -212,24 +256,6 @@ Behavior:
 -   `pip install package --pre` → includes pre-releases
 -   `pip install package==0.0.1a2` → explicit works
 
-This is desirable behavior.
-
-------------------------------------------------------------------------
-
-# 7. Minimal Safe Release Checklist
-
-Before uploading:
-
--   [ ] On `main`
--   [ ] Version bumped
--   [ ] Tag created
--   [ ] Clean build succeeds
--   [ ] Fresh environment install works
--   [ ] CLI works
--   [ ] Web app launches
--   [ ] Dependencies verified
--   [ ] README updated if needed
-
 ------------------------------------------------------------------------
 
 # 8. Dependency Policy (Cross-Reference)
@@ -240,25 +266,21 @@ A separate `dependency_policy.md` should define:
 -   When to pin vs. range
 -   Optional dependencies
 -   Heavy NLP libraries placement in `[project.optional-dependencies]`
--   Avoiding over-specification early in lifecycle
 
 Guiding principle:
 
-> Tightening later is easy. Loosening later is painful.
-
-Especially for ecosystem tools like CLATR.
+> Tightening later is easy.\
+> Loosening later is painful.
 
 ------------------------------------------------------------------------
 
 # 9. Philosophical Principle
 
-A release is not just a build artifact.
-
-It is:
+A release is:
 
 -   A reproducible research object
 -   A citation anchor
 -   A dependency contract
 -   A public commitment
 
-Releases should be deliberate, verified, and boring - boring releases are good releases.
+Releases should be deliberate, verified, and 'boring'.
