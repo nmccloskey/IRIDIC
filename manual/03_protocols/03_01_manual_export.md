@@ -126,13 +126,13 @@ Example:
 
 ## 5. Code Block Wrapping (LaTeX Requirement)
 
-To ensure long Bash commands wrap properly, `manual_pdf.yaml` must
+To ensure long syntax-highlighted lines wrap properly, `manual_pdf.yaml` must
 include:
 
-``` yaml
+```yaml
 header-includes:
   - \usepackage{fvextra}
-  - \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,breakanywhere,commandchars=\\\{\}}
+  - \fvset{breaklines=true,breakanywhere=true}
 ```
 
 Without this, long commands may run off the page.

@@ -244,14 +244,14 @@ Include a `manual_pdf.yaml` under manual/ to:
 
 The file templates/manual/`manual_pdf_template.yaml` can be modified as needed.
 
-### 13.3 Bash Blocks
+### 13.3 Code Blocks
 
-Command lines auto-wrap if the below is included in `manual_pdf.yaml`:
+Command/YAML lines auto-wrap if the below is included in `manual_pdf.yaml`:
 
-```
+```yaml
 header-includes:
   - \usepackage{fvextra}
-  - \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,breakanywhere,commandchars=\\\{\}}
+  - \fvset{breaklines=true,breakanywhere=true}
 ```
 
 Nonetheless,
