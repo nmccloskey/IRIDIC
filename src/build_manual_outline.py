@@ -129,9 +129,33 @@ def build_tree(entries: List[Entry]) -> dict:
     return tree
 
 
-def render_tree(tree: dict, base_rel: Path, prefix: str = "", max_depth: Optional[int] = None, depth: int = 0) -> List[str]:
-    """
-    Render tree dict into unicode tree lines with Markdown links.
+def render_tree(
+    tree: dict,
+    base_rel: Path,
+    prefix: str = "",
+    max_depth: Optional[int] = None,
+    depth: int = 0,
+    *,
+    links: bool = False,
+    show_titles: bool = False,
+    indent_mid = "│   ",
+    indent_last = "    "
+) -> List[str]:
+    """Render tree dict into unicode tree lines.
+
+    Parameters
+    ----------
+    links:
+        If True, render Markdown links for files.
+    show_titles:
+        If True, append extracted titles to file labels (only used when links=True).
+    indent_mid / indent_last:
+        Indentation fragments used to build the prefix for child nodes.
+
+    Notes
+    -----
+    The default tree rendering is intentionally *clean* (no links, no titles) so it
+    reads like a conventional filesystem tree.
     """
     if max_depth is not None and depth > max_depth:
         return []
@@ -142,18 +166,33 @@ def render_tree(tree: dict, base_rel: Path, prefix: str = "", max_depth: Optiona
     for i, k in enumerate(keys):
         last = (i == len(keys) - 1)
         branch = "└── " if last else "├── "
-        next_prefix = prefix + ("    " if last else "│   ")
+        next_prefix = prefix + (indent_last if last else indent_mid)
         node = tree[k]
 
         if isinstance(node, dict):
             lines.append(f"{prefix}{branch}{k}/")
-            lines.extend(render_tree(node, base_rel / k, prefix=next_prefix, max_depth=max_depth, depth=depth + 1))
+            lines.extend(
+                render_tree(
+                    node,
+                    base_rel / k,
+                    prefix=next_prefix,
+                    max_depth=max_depth,
+                    depth=depth + 1,
+                    links=links,
+                    show_titles=show_titles,
+                    indent_mid=indent_mid,
+                    indent_last=indent_last,
+                )
+            )
         else:
-            rel_link = (base_rel / k).as_posix()
-            label = k
-            if node.title:
-                label = f"{k} — {node.title}"
-            lines.append(f"{prefix}{branch}[{label}]({rel_link})")
+            if not links:
+                lines.append(f"{prefix}{branch}{k}")
+            else:
+                rel_link = (base_rel / k).as_posix()
+                label = k
+                if show_titles and node.title:
+                    label = f"{k} — {node.title}"
+                lines.append(f"{prefix}{branch}[{label}]({rel_link})")
 
     return lines
 
