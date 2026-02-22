@@ -108,12 +108,11 @@ def assemble_markdown(
 ) -> str:
     chunks: List[str] = []
 
-    for i, f in enumerate(files):
-        if i > 0:
-            if add_pagebreaks:
-                chunks.append("\n\n\\newpage\n\n")
-            else:
-                chunks.append("\n\n")
+    for f in files:
+        if add_pagebreaks:
+            chunks.append("\n\n\\newpage\n\n")
+        else:
+            chunks.append("\n\n")
 
         if include_file_dividers:
             chunks.append(f"\n\n---\n\n<!-- source: {f.rel_path.as_posix()} -->\n\n")
