@@ -297,7 +297,7 @@ This file intentionally stays focused on:
 
 ------------------------------------------------------------------------
 
-# References
+## References
 
 The below sources inform this policy:
 
