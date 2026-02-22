@@ -29,9 +29,9 @@ conda --version
 
 ---
 
-# Method 1 — Direct Rename (Conda ≥ 4.14.0)
+## Method 1 — Direct Rename (Conda ≥ 4.14.0)
 
-## Step 1 — Deactivate the Environment
+### Step 1 — Deactivate the Environment
 
 If the environment is currently active:
 
@@ -54,7 +54,7 @@ The active environment is marked with `*`. Ensure your target environment does *
 
 ---
 
-## Step 2 — Verify the Existing Environment Name
+### Step 2 — Verify the Existing Environment Name
 
 List all environments:
 
@@ -72,7 +72,7 @@ Confirm the exact spelling of `old_name`.
 
 ---
 
-## Step 3 — Rename the Environment
+### Step 3 — Rename the Environment
 
 ```bash
 conda rename -n old_name new_name
@@ -86,7 +86,7 @@ conda rename -n infoscopy psair
 
 ---
 
-## Step 4 — Verify Rename Worked
+### Step 4 — Verify Rename Worked
 
 ```bash
 conda env list
@@ -102,11 +102,11 @@ If activation works and packages behave as expected, rename is complete.
 
 ---
 
-# Method 2 — Fallback for Older Conda Versions (< 4.14.0)
+## Method 2 — Fallback for Older Conda Versions (< 4.14.0)
 
 If `conda rename` is unavailable, use the clone/remove method.
 
-## Step 1 — Clone the Environment
+### Step 1 — Clone the Environment
 
 ```bash
 conda create --name new_name --clone old_name
@@ -120,7 +120,7 @@ conda create --name psair --clone infoscopy
 
 ---
 
-## Step 2 — Test the New Environment
+### Step 2 — Test the New Environment
 
 ```bash
 conda activate new_name
@@ -140,7 +140,7 @@ conda list
 
 ---
 
-## Step 3 — Remove the Old Environment
+### Step 3 — Remove the Old Environment
 
 Only after confirming the new one works:
 
@@ -150,7 +150,7 @@ conda remove --name old_name --all
 
 ---
 
-# Common Gotchas
+## Common Gotchas
 
 ### 1. Trying to Rename While Active
 Conda will refuse. Always `conda deactivate` first.
@@ -175,7 +175,7 @@ pip install -e .
 
 ---
 
-# When Should You Rename vs Recreate?
+## When Should You Rename vs Recreate?
 
 Rename is appropriate when:
 
@@ -191,7 +191,7 @@ Recreate is often better when:
 
 ---
 
-# IRIDIC Micro-Template (Copy/Paste)
+## IRIDIC Micro-Template (Copy/Paste)
 
 Deactivate:
 ```bash
@@ -222,7 +222,7 @@ conda list
 
 ---
 
-# Final Checklist
+## Final Checklist
 
 - [ ] Not inside environment during rename  
 - [ ] Confirmed Conda version  

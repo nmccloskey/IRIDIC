@@ -29,9 +29,9 @@ functional metadata.
 
 ------------------------------------------------------------------------
 
-# 2. One Source of Truth Policy
+## 2. One Source of Truth Policy
 
-## 2.1 Functional Metadata
+### 2.1 Functional Metadata
 
 Functional metadata (values read programmatically by the package) must
 exist in exactly one authoritative location.
@@ -60,7 +60,7 @@ This ensures:
 
 ------------------------------------------------------------------------
 
-## 2.2 Aesthetic Metadata
+### 2.2 Aesthetic Metadata
 
 Certain locations (e.g., README version badge) may repeat the version
 string for clarity.
@@ -74,7 +74,7 @@ Guiding rule:
 
 ------------------------------------------------------------------------
 
-# 3. High-Level Release Workflow
+## 3. High-Level Release Workflow
 
 ### Development Cycle
 
@@ -93,7 +93,7 @@ Public releases always reflect the `main` branch.
 
 ------------------------------------------------------------------------
 
-# 4. Branch Discipline During Release
+## 4. Branch Discipline During Release
 
 ### Upload From `main` Only
 
@@ -114,7 +114,7 @@ You are publishing the currently checked-out branch.
 
 ------------------------------------------------------------------------
 
-# 5. Canonical Release Sequence
+## 5. Canonical Release Sequence
 
 ### STEP 1 --- Finish Work in `dev`
 
@@ -209,7 +209,7 @@ This prevents version divergence.
 
 ------------------------------------------------------------------------
 
-# 6. TestPyPI Loop (Recommended for Early Releases)
+## 6. TestPyPI Loop (Recommended for Early Releases)
 
 ### Local Fast Test
 
@@ -230,9 +230,9 @@ Fix → bump → rebuild → reupload → retest.
 
 ------------------------------------------------------------------------
 
-# 7. Versioning Rules
+## 7. Versioning Rules
 
-## 7.1 Versions Are Immutable
+### 7.1 Versions Are Immutable
 
 Once uploaded to PyPI or TestPyPI:
 
@@ -244,7 +244,7 @@ Every upload requires a new version string.
 
 ------------------------------------------------------------------------
 
-## 7.2 Pre-Release Scheme (PEP 440)
+### 7.2 Pre-Release Scheme (PEP 440)
 
 Valid progression:
 
@@ -258,7 +258,7 @@ Behavior:
 
 ------------------------------------------------------------------------
 
-# 8. Dependency Policy (Cross-Reference)
+## 8. Dependency Policy (Cross-Reference)
 
 A separate `dependency_policy.md` should define:
 
@@ -274,7 +274,7 @@ Guiding principle:
 
 ------------------------------------------------------------------------
 
-# 9. Philosophical Principle
+## 9. Philosophical Principle
 
 A release is:
 
