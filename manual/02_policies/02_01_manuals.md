@@ -218,9 +218,9 @@ Separate protocol documents may define:
 
 ------------------------------------------------------------------------
 
-## 13. Encoding
+## 13. PDF compliation
 
-Markdown files should be written considering PDF compliation:
+Proper encoding faciliatates PDF compliation:
 
 - **Encoding rule:** All manual .md files MUST be saved as UTF-8 (no BOM preferred).
 
@@ -232,6 +232,28 @@ Markdown files should be written considering PDF compliation:
     - verifies UTF-8 decodability
     - flags C0/C1 control chars (except `\n`, `\t`)
     - reports the file + byte offset
+
+Command lines auto-wrap if the below is included in `manual_pdf.yaml`
+
+```yaml
+header-includes:
+  - \usepackage{fvextra}
+  - \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,breakanywhere,commandchars=\\\{\}}
+```
+
+Nonetheless,
+
+- Keep command lines reasonably short when possible.
+- When a command is long, prefer a readable multi-line version, e.g.:
+
+```bash
+python -m pip install \
+  -i https://test.pypi.org/simple \
+  --extra-index-url https://pypi.org/simple \
+  psair
+```
+
+That improves both GitHub and PDF rendering, but the LaTeX wrapping is still desirable for edge cases (e.g., long URLs).
 
 ------------------------------------------------------------------------
 
