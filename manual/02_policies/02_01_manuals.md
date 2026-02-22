@@ -74,7 +74,8 @@ Example for RASCAL:
     │   ├── 04_outputs.md
     │   ├── 05_database_logic.md
     │   ├── 06_examples.md
-    │   └── 99_appendix.md
+    │   ├── 99_appendix.md
+    │   └── manual_pdf.yaml
     │
     └── README.md
 
@@ -218,9 +219,9 @@ Separate protocol documents may define:
 
 ------------------------------------------------------------------------
 
-## 13. PDF compliation
+## 13. Manual Export (to PDF)
 
-Proper encoding faciliatates PDF compliation:
+### 13.1 Encoding
 
 - **Encoding rule:** All manual .md files MUST be saved as UTF-8 (no BOM preferred).
 
@@ -228,14 +229,26 @@ Proper encoding faciliatates PDF compliation:
 
 - **Normalization:** Prefer standard ASCII punctuation in headings/filenames; Unicode is allowed in body text, but keep it intentional.
 
-- **Optional check:** add a “manual hygiene” script or pre-commit hook that:
-    - verifies UTF-8 decodability
-    - flags C0/C1 control chars (except `\n`, `\t`)
-    - reports the file + byte offset
+- **Optional check:** use `check_manual_chars.py` to:
+    - verify UTF-8 decodability
+    - flag C0/C1 control chars (except `\n`, `\t`)
+    - report the file + byte offset
 
-Command lines auto-wrap if the below is included in `manual_pdf.yaml`
 
-```yaml
+### 13.2 Header
+
+Include a `manual_pdf.yaml` under manual/ to:
+- specify formatting
+- toggle table of contents
+- ensure proper line wrapping (see below)
+
+The file templates/manual/`manual_pdf_template.yaml` can be modified as needed.
+
+### 13.3 Bash Blocks
+
+Command lines auto-wrap if the below is included in `manual_pdf.yaml`:
+
+```
 header-includes:
   - \usepackage{fvextra}
   - \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,breakanywhere,commandchars=\\\{\}}
