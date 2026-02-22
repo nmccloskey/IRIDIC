@@ -1,0 +1,35 @@
+# ==========================================================
+# IRIDIC Instruction Manual – PDF Compilation Config
+# ==========================================================
+
+title: "IRIDIC Instruction Manual"
+subtitle: "Idiosyncratic Repository of Initialization & Development Itineraries for Codebases"
+author: "Nick McCloskey"
+date: "Version 0.1.0"
+
+geometry: margin=3cm
+fontsize: 11pt
+linestretch: 1.15
+papersize: letter
+
+titlepage: true
+titlepage-color: "FFFFFF"
+titlepage-text-color: "000000"
+titlepage-rule-height: 1
+
+toc: true
+toc-depth: 3
+numbersections: true
+
+header-includes:
+  - \usepackage{fancyhdr}
+  - \pagestyle{fancy}
+  - \fancyfoot[C]{\thepage}
+  - \fancyhead[L]{IRIDIC Manual}
+  - \fancyhead[R]{Version 0.1.0}
+
+colorlinks: true
+linkcolor: blue
+urlcolor: blue
+
+highlight-style: tango
