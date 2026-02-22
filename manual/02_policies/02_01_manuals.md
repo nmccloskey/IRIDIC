@@ -218,6 +218,23 @@ Separate protocol documents may define:
 
 ------------------------------------------------------------------------
 
+## 13. Encoding
+
+Markdown files should be written considering PDF compliation:
+
+- **Encoding rule:** All manual .md files MUST be saved as UTF-8 (no BOM preferred).
+
+- **Forbidden characters:** Avoid “invisible” control characters from copy/paste (especially from PDFs/Word/Slack). If suspected, retype the line or paste via a plain-text intermediate.
+
+- **Normalization:** Prefer standard ASCII punctuation in headings/filenames; Unicode is allowed in body text, but keep it intentional.
+
+- **Optional check:** add a “manual hygiene” script or pre-commit hook that:
+    - verifies UTF-8 decodability
+    - flags C0/C1 control chars (except `\n`, `\t`)
+    - reports the file + byte offset
+
+------------------------------------------------------------------------
+
 ## References
 
 -   Pandoc Documentation (https://pandoc.org/)
