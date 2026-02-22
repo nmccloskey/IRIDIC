@@ -101,18 +101,40 @@ def iter_markdown_files(
     return out
 
 
+_HEADING_NUM_RE = re.compile(
+    r"""^(?P<h>\#{1,6})\s+                           # heading marks
+         (?P<num>\d+(?:\.\d+)*)                     # 2 or 2.1 or 2.1.3
+         (?:\s*[.)])?                               # optional "." or ")"
+         (?:\s*[-:])?                               # optional "-" or ":" (with optional spaces)
+         \s+                                        # at least one space before title
+         (?P<title>.+?)\s*$                         # title
+     """,
+    re.VERBOSE,
+)
+
+def strip_heading_numbers(md: str) -> str:
+    out = []
+    for line in md.splitlines():
+        m = _HEADING_NUM_RE.match(line)
+        if m:
+            out.append(f"{m.group('h')} {m.group('title')}")
+        else:
+            out.append(line)
+    return "\n".join(out) + ("\n" if md.endswith("\n") else "")
+
+
 def assemble_markdown(
     files: List[MdFile],
     add_pagebreaks: bool,
     include_file_dividers: bool,
+    strip_heading_nums: bool,
 ) -> str:
     chunks: List[str] = []
 
-    for f in files:
-        if add_pagebreaks:
-            chunks.append("\n\n\\newpage\n\n")
-        else:
-            chunks.append("\n\n")
+    for i, f in enumerate(files):
+        # Page breaks only BETWEEN files (prevents blank first page)
+        if i > 0:
+            chunks.append("\n\n\\newpage\n\n" if add_pagebreaks else "\n\n")
 
         if include_file_dividers:
             chunks.append(f"\n\n---\n\n<!-- source: {f.rel_path.as_posix()} -->\n\n")
@@ -125,6 +147,10 @@ def assemble_markdown(
             text = f.abs_path.read_text(encoding="utf-8", errors="ignore")
 
         text = text.replace("\r\n", "\n").replace("\r", "\n")
+
+        if strip_heading_nums:
+            text = strip_heading_numbers(text)
+
         chunks.append(text.strip() + "\n")
 
     return "\n".join(chunks).strip() + "\n"
@@ -181,6 +207,8 @@ def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
 
     p.add_argument("--pagebreaks", action="store_true", default=True, help="Insert a page break between each file (default ON).")
     p.add_argument("--no-pagebreaks", dest="pagebreaks", action="store_false", help="Do not insert page breaks between files.")
+    p.add_argument("--strip-heading-numbers", action="store_true", default=True,
+               help="Strip leading numeric prefixes from Markdown headings in the assembled PDF only.")
 
     p.add_argument("--include-outline", action="store_true", default=False, help="Include 00_outline.md in the PDF (default OFF).")
     p.add_argument("--outline-name", type=str, default="00_outline.md", help="Name of the outline file to exclude/include.")
@@ -261,6 +289,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         files=files,
         add_pagebreaks=args.pagebreaks,
         include_file_dividers=args.file_dividers,
+        strip_heading_nums=args.strip_heading_numbers,
     )
 
     with tempfile.TemporaryDirectory() as td:

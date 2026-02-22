@@ -22,6 +22,8 @@ toc-depth: 3
 numbersections: true
 
 header-includes:
+  - \usepackage{etoolbox}
+  - \apptocmd{\tableofcontents}{\clearpage}{}{}
   - \usepackage{fancyhdr}
   - \pagestyle{fancy}
   - \fancyfoot[C]{\thepage}
