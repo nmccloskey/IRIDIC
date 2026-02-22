@@ -27,6 +27,8 @@ header-includes:
   - \fancyfoot[C]{\thepage}
   - \fancyhead[L]{IRIDIC Manual}
   - \fancyhead[R]{Version 0.1.0}
+  - \usepackage{fvextra}
+  - \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,breakanywhere,commandchars=\\\{\}}
 
 colorlinks: true
 linkcolor: blue
