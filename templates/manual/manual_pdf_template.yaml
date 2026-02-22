@@ -32,6 +32,8 @@ header-includes:
   - \fancyfoot[C]{\thepage}
   - \fancyhead[L]{\leftmark}
   - \fancyhead[R]{Version X.Y.Z}
+  - \usepackage{fvextra}
+  - \fvset{breaklines=true,breakanywhere=true}
 
 # ---------- Links ----------
 colorlinks: true
