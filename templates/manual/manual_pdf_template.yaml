@@ -1,0 +1,42 @@
+# ==========================================================
+# IRIDIC Manual PDF Compilation Template
+# For use with Pandoc
+# ==========================================================
+
+title: "Project Instruction Manual"
+subtitle: "Full Manual"
+author: "Author Name"
+date: "Version X.Y.Z"
+
+# ---------- Layout ----------
+geometry: margin=3cm
+fontsize: 11pt
+linestretch: 1.15
+papersize: letter
+
+# ---------- Title Page ----------
+titlepage: true
+titlepage-color: "FFFFFF"
+titlepage-text-color: "000000"
+titlepage-rule-height: 1
+
+# ---------- Table of Contents ----------
+toc: true
+toc-depth: 3
+numbersections: true
+
+# ---------- Headers & Footers ----------
+header-includes:
+  - \usepackage{fancyhdr}
+  - \pagestyle{fancy}
+  - \fancyfoot[C]{\thepage}
+  - \fancyhead[L]{\leftmark}
+  - \fancyhead[R]{Version X.Y.Z}
+
+# ---------- Links ----------
+colorlinks: true
+linkcolor: blue
+urlcolor: blue
+
+# ---------- Code Blocks ----------
+highlight-style: tango
