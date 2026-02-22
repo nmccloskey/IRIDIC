@@ -1,12 +1,5 @@
 # Dependency Policy & Locking Workflow
 
-**Project:** IRIDIC -- Idiosyncratic Repository of Initialization &
-Development Itineraries for Codebases\
-**Document:** dependency_policy.md\
-**Last Updated:** 2026-02-21
-
-------------------------------------------------------------------------
-
 ## 1. Purpose
 
 This document defines:

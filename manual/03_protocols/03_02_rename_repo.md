@@ -10,7 +10,7 @@ Assumptions: **Windows + VS Code + repo already cloned locally**.
 
 ---
 
-## 0) Decide what is being renamed
+## 0. Decide what is being renamed
 
 You may be renaming **up to three different things** (they can match, but they don’t have to):
 
@@ -26,7 +26,7 @@ If you’re doing a “minimal PyPI upload,” (3) matters even if (2) is option
 
 ---
 
-## 1) Rename on GitHub
+## 1. Rename on GitHub
 
 1. Go to your repo on GitHub
 2. **Settings → Repository name → Rename**
@@ -34,7 +34,7 @@ If you’re doing a “minimal PyPI upload,” (3) matters even if (2) is option
 
 ---
 
-## 2) Update your local git remote (origin) to the new GitHub URL
+## 2. Update your local git remote (origin) to the new GitHub URL
 
 From a terminal **inside the repo** (VS Code Terminal is fine):
 
@@ -65,7 +65,7 @@ If you see the new URL and `git fetch` works, you’re good.
 
 ---
 
-## 3) Rename the local folder (optional but recommended on Windows)
+## 3. Rename the local folder (optional but recommended on Windows)
 
 This is not required for Git correctness, but it reduces cognitive friction.
 
@@ -82,7 +82,7 @@ Update the folder path inside it, or recreate the workspace.
 
 ---
 
-## 4) If your Python package name changes, update the codebase (PyPI-relevant)
+## 4. If your Python package name changes, update the codebase (PyPI-relevant)
 
 This is the part that actually matters for packaging.
 
@@ -140,7 +140,7 @@ Make sure `psair/cli.py` exists and defines `main()`.
 
 ---
 
-## 5) Update README, badges, and internal links
+## 5. Update README, badges, and internal links
 
 Minimum set:
 
@@ -160,7 +160,7 @@ git grep -n "github.com/.*/Infoscopy"
 
 ---
 
-## 6) Minimal PyPI upload checklist (don’t get blocked)
+## 6. Minimal PyPI upload checklist (don’t get blocked)
 
 From repo root:
 
@@ -196,7 +196,7 @@ python -m twine upload dist/*
 
 ---
 
-## 7) Common gotchas
+## 7. Common gotchas
 
 - **Repo renamed but remote not updated** → `git push` tries old URL and fails.
 - **Distribution name vs import name confusion**
@@ -212,7 +212,7 @@ python -m twine upload dist/*
 
 ---
 
-## 8) Compact “IRIDIC-able” micro-template (copy/paste)
+## 8. Compact “IRIDIC-able” micro-template (copy/paste)
 
 **Rename GitHub repo**
 - GitHub Settings → Rename
@@ -237,7 +237,7 @@ python -m twine upload dist/*
 
 ---
 
-## 9) Quick “did I finish?” checklist
+## 9. Quick “did I finish?” checklist
 
 - [ ] GitHub repo renamed; new URL works  
 - [ ] `git remote -v` shows new origin URL  

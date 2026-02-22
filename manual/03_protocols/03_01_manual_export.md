@@ -1,13 +1,5 @@
 # Manual Export Protocol
 
-## IRIDIC -- Manual Compilation & Archival Workflow
-
-**Version:** 0.1.0\
-**Date:** 2026-02-21\
-**Applies to:** All IRIDIC-governed modular manuals
-
-------------------------------------------------------------------------
-
 ## 1. Purpose
 
 This protocol defines the standardized workflow for exporting a modular

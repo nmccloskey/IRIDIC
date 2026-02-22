@@ -1,12 +1,5 @@
 # General Context & Development Philosophy
 
-**Project:** IRIDIC -- Idiosyncratic Repository of Initialization &
-Development Itineraries for Codebases\
-**Document:** general.md\
-**Last Updated:** 2026-02-21
-
-------------------------------------------------------------------------
-
 ## 1. Development Environment
 
 Primary workstation setup:

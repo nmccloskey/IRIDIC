@@ -191,7 +191,7 @@ Recreate is often better when:
 
 ---
 
-## IRIDIC Micro-Template (Copy/Paste)
+## Micro-Template (Copy/Paste)
 
 Deactivate:
 ```bash
@@ -230,4 +230,3 @@ conda list
 - [ ] Rename or clone completed successfully  
 - [ ] Activated new environment  
 - [ ] Removed old environment (if using fallback)  
-

@@ -1,12 +1,5 @@
 # GitHub Workflow & Update Policy
 
-**Project:** IRIDIC -- Idiosyncratic Repository of Initialization &
-Development Itineraries for Codebases\
-**Document:** github_updates.md\
-**Last Updated:** 2026-02-21
-
-------------------------------------------------------------------------
-
 ## 1. Purpose
 
 This document defines standardized conventions for:

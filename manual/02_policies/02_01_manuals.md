@@ -1,13 +1,5 @@
 # Manuals Policy
 
-## IRIDIC -- Idiosyncratic Repository of Initialization & Development Itineraries for Codebases
-
-**Version:** 0.1.0\
-**Date:** 2026-02-22\
-**Status:** Active Policy
-
-------------------------------------------------------------------------
-
 ## 1. Purpose
 
 This policy defines standards for structuring, naming, organizing, and
