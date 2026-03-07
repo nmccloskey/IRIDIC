@@ -4,25 +4,25 @@
 
 This document defines the standardized workflow for:
 
--   Preparing a release
--   Building distributions
--   Testing installations
--   Uploading to PyPI/TestPyPI
--   Synchronizing branches
--   Managing version numbers
+- Preparing a release
+- Building distributions
+- Testing installations
+- Uploading to PyPI/TestPyPI
+- Synchronizing branches
+- Managing version numbers
 
 This policy aligns with:
 
--   PEP 440 (Version Identification)
--   Semantic Versioning (https://semver.org)
--   PyPA packaging guide (https://packaging.python.org)
+- PEP 440 (Version Identification)
+- Semantic Versioning (https://semver.org)
+- PyPA packaging guide (https://packaging.python.org)
 
-It also enforces a **One Source of Truth (SSOT)** principle for
+It also enforces a **Single Source of Truth (SSOT)** principle for
 functional metadata.
 
-------------------------------------------------------------------------
+---
 
-## 2. One Source of Truth Policy
+## 2. Single Source of Truth (SSOT) Policy
 
 ### 2.1 Functional Metadata
 
@@ -31,12 +31,12 @@ exist in exactly one authoritative location.
 
 For versioning:
 
--   The single source of truth is `pyproject.toml`.
--   The package must **not** hardcode version strings in `__init__.py`.
+- The single source of truth is `pyproject.toml`.
+- The package must **not** hardcode version strings in `__init__.py`.
 
 Instead, use dynamic retrieval via `importlib.metadata`:
 
-``` python
+```python
 from importlib.metadata import PackageNotFoundError, version
 
 try:
@@ -47,23 +47,37 @@ except PackageNotFoundError:  # pragma: no cover
 
 This ensures:
 
--   The installed distribution defines the version.
--   There is no risk of version drift.
--   The package reflects the built artifact.
+- The installed distribution defines the version.
+- There is no risk of version drift.
+- The package reflects the built artifact.
 
-------------------------------------------------------------------------
+---
 
-### 2.2 Aesthetic Metadata
+### 2.2 Version Display via PyPI Badge
 
-Certain locations (e.g., README version badge) may repeat the version
-string for clarity.
+The canonical public display of a package's version should be the **PyPI version badge** in the repository README.
 
-This duplication is **aesthetic**, not functional.
+Example:
 
-Guiding rule:
+```markdown
+![PyPI version](https://img.shields.io/pypi/v/rascal-speech)
+```
 
-> Functional values must be singular.
-> Display values may duplicate if necessary.
+This badge dynamically reads the version published on PyPI and updates automatically after each release.
+
+Advantages:
+
+- Eliminates manual README updates
+- Prevents aesthetic version drift
+- Reflects the authoritative published artifact
+- Keeps documentation synchronized with distribution state
+
+The version still originates from `pyproject.toml` and becomes authoritative once published.
+
+Guiding rules:
+
+- Functional values must exist in a single authoritative location.
+- Display mechanisms should reference that source dynamically whenever possible.
 
 ------------------------------------------------------------------------
 
