@@ -1,439 +1,430 @@
-#!/usr/bin/env python
-"""
-check_manual_chars.py
-
-Scan a manual/ directory (or any directory) for character/encoding issues that tend
-to break PDF compilation (Pandoc/LaTeX) or cause subtle rendering problems.
-
-What it checks
---------------
-1) UTF-8 decodability (strict) for *.md / *.markdown by default
-2) Presence of "forbidden" control characters
-   - C0 controls: U+0000–U+001F (except TAB, LF, CR)
-   - DEL: U+007F
-   - C1 controls: U+0080–U+009F (includes U+0081 which often triggers cp1252 issues)
-3) Optional checks (off by default):
-   - Non-ASCII characters (report only, not an error unless requested)
-   - Trailing whitespace
-   - Mixed line endings (CRLF vs LF) report
-
-Exit codes
-----------
-0 = no problems found (or only warnings, depending on flags)
-1 = problems found (or warnings treated as errors)
-
-Typical usage
--------------
-python check_manual_chars.py manual/
-python check_manual_chars.py manual/ --fail-on-nonascii
-python check_manual_chars.py manual/ --fix-line-endings lf --strip-trailing
-
-Integration tips
-----------------
-- Use in CI (GitHub Actions) and/or pre-commit.
-- Make it part of your manual compilation protocol: run this before pandoc.
-"""
-
 from __future__ import annotations
 
 import argparse
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Iterable, List, Optional, Sequence, Tuple
+from typing import Iterable, Optional
 
 
-DEFAULT_EXTS = {".md", ".markdown"}
-
-# Allowed C0 whitespace controls commonly present in text files
-_ALLOWED_CONTROLS = {0x09, 0x0A, 0x0D}  # TAB, LF, CR
-
-# Control character ranges to flag (excluding allowed)
-_CONTROL_RANGES: List[Tuple[int, int]] = [
-    (0x00, 0x1F),   # C0
-    (0x7F, 0x7F),   # DEL
-    (0x80, 0x9F),   # C1
-]
+TEXT_EXTS = {
+    ".md",
+    ".markdown",
+    ".txt",
+    ".yaml",
+    ".yml",
+    ".toml",
+    ".json",
+    ".py",
+}
 
 
 @dataclass(frozen=True)
 class Finding:
+    """
+    A single character/content hygiene finding.
+    """
     path: Path
-    line: Optional[int]
-    col: Optional[int]
-    codepoint: Optional[int]
-    kind: str  # "decode", "control", "nonascii", "trailing", "lineendings"
+    line_no: int
+    kind: str
     message: str
+    line: str = ""
 
 
-def iter_target_files(root: Path, exts: set[str], include_hidden: bool) -> List[Path]:
-    files: List[Path] = []
-    for p in root.rglob("*"):
-        if not p.is_file():
+@dataclass
+class CharScanResult:
+    """
+    Structured result for a manual character/content scan.
+    """
+    root: Path
+    scanned_files: list[Path] = field(default_factory=list)
+    fixed_files: list[Path] = field(default_factory=list)
+    warnings: list[Finding] = field(default_factory=list)
+    errors: list[Finding] = field(default_factory=list)
+
+    @property
+    def ok(self) -> bool:
+        return not self.errors
+
+    @property
+    def total_findings(self) -> int:
+        return len(self.warnings) + len(self.errors)
+
+    def summary_lines(self) -> list[str]:
+        lines = [
+            f"Root: {self.root}",
+            f"Files scanned: {len(self.scanned_files)}",
+            f"Files modified: {len(self.fixed_files)}",
+            f"Warnings: {len(self.warnings)}",
+            f"Errors: {len(self.errors)}",
+        ]
+        return lines
+
+    def report_lines(self, *, show_lines: bool = True) -> list[str]:
+        lines = self.summary_lines()
+
+        if self.warnings:
+            lines.append("")
+            lines.append("Warnings")
+            lines.append("--------")
+            for finding in self.warnings:
+                lines.append(format_finding(finding, show_line=show_lines))
+
+        if self.errors:
+            lines.append("")
+            lines.append("Errors")
+            lines.append("------")
+            for finding in self.errors:
+                lines.append(format_finding(finding, show_line=show_lines))
+
+        return lines
+
+
+def normalize_exts(exts: set[str] | None) -> set[str]:
+    """
+    Normalize extensions to lowercase dotted forms.
+    """
+    if not exts:
+        return set(TEXT_EXTS)
+
+    normalized = {e.strip().lower() for e in exts if e and e.strip()}
+    return {("." + e) if not e.startswith(".") else e for e in normalized}
+
+
+def iter_target_files(
+    root: Path,
+    *,
+    exts: set[str] | None = None,
+    include_hidden: bool = False,
+) -> list[Path]:
+    """
+    Collect target text-like files under root.
+    """
+    exts = normalize_exts(exts)
+    root = root.resolve()
+
+    paths: list[Path] = []
+    for path in root.rglob("*"):
+        if not path.is_file():
             continue
-        if p.suffix.lower() not in exts:
-            continue
-        rel = p.relative_to(root)
+
+        rel = path.relative_to(root)
+
         if not include_hidden and any(part.startswith(".") for part in rel.parts):
             continue
         if "__pycache__" in rel.parts:
             continue
-        files.append(p)
-    files.sort()
-    return files
-
-
-def is_control(cp: int) -> bool:
-    for lo, hi in _CONTROL_RANGES:
-        if lo <= cp <= hi:
-            return True
-    return False
-
-
-def find_controls(text: str, path: Path) -> List[Finding]:
-    findings: List[Finding] = []
-    line = 1
-    col = 0
-    for ch in text:
-        cp = ord(ch)
-        if ch == "\n":
-            line += 1
-            col = 0
+        if path.suffix.lower() not in exts:
             continue
-        col += 1
-        if is_control(cp) and cp not in _ALLOWED_CONTROLS:
-            findings.append(
-                Finding(
-                    path=path,
-                    line=line,
-                    col=col,
-                    codepoint=cp,
-                    kind="control",
-                    message=f"Forbidden control character U+{cp:04X} at line {line}, col {col}.",
-                )
-            )
-    return findings
+
+        paths.append(path)
+
+    paths.sort(key=lambda p: tuple(part.lower() for part in p.relative_to(root).parts))
+    return paths
 
 
-def find_nonascii(text: str, path: Path) -> List[Finding]:
-    findings: List[Finding] = []
-    line = 1
-    col = 0
-    for ch in text:
-        if ch == "\n":
-            line += 1
-            col = 0
-            continue
-        col += 1
-        cp = ord(ch)
-        if cp > 0x7F:
-            findings.append(
-                Finding(
-                    path=path,
-                    line=line,
-                    col=col,
-                    codepoint=cp,
-                    kind="nonascii",
-                    message=f"Non-ASCII character U+{cp:04X} at line {line}, col {col}: {repr(ch)}",
-                )
-            )
-    return findings
-
-
-def find_trailing_whitespace(lines: Sequence[str], path: Path) -> List[Finding]:
-    findings: List[Finding] = []
-    for i, ln in enumerate(lines, start=1):
-        if ln.endswith(" ") or ln.endswith("\t"):
-            findings.append(
-                Finding(
-                    path=path,
-                    line=i,
-                    col=len(ln),
-                    codepoint=None,
-                    kind="trailing",
-                    message=f"Trailing whitespace at line {i}.",
-                )
-            )
-    return findings
-
-
-def detect_line_endings(raw: bytes) -> str:
-    """
-    Returns: "lf", "crlf", "cr", or "mixed"
-    """
-    has_lf = b"\n" in raw
-    has_crlf = b"\r\n" in raw
-    has_cr = b"\r" in raw
-
-    # If has CRLF, it also has LF, so check patterns
-    if has_crlf:
-        # Mixed if there exist bare LF not part of CRLF
-        raw_no_crlf = raw.replace(b"\r\n", b"")
-        if b"\n" in raw_no_crlf:
-            return "mixed"
-        return "crlf"
-
-    if has_cr and not has_lf:
-        return "cr"
-    if has_lf and not has_cr:
-        return "lf"
-    if has_cr and has_lf:
-        return "mixed"
-    return "lf"  # empty file case
-
-
-def normalize_line_endings(text: str, target: str) -> str:
-    # Normalize first to \n
-    t = text.replace("\r\n", "\n").replace("\r", "\n")
-    if target == "lf":
-        return t
-    if target == "crlf":
-        return t.replace("\n", "\r\n")
-    raise ValueError(f"Unsupported line ending target: {target}")
-
-
-def strip_trailing_ws(text: str) -> str:
-    # Preserve final newline if present
-    ends_with_nl = text.endswith("\n") or text.endswith("\r\n")
-    t = text.replace("\r\n", "\n").replace("\r", "\n")
-    t2 = "\n".join([ln.rstrip(" \t") for ln in t.split("\n")])
-    if ends_with_nl and not t2.endswith("\n"):
-        t2 += "\n"
-    return t2
+def _iter_nonascii_chars(line: str) -> Iterable[str]:
+    for ch in line:
+        if ord(ch) > 127:
+            yield ch
 
 
 def scan_file(
     path: Path,
-    root: Path,
-    report_nonascii: bool,
-    check_trailing: bool,
-    check_line_endings: bool,
-) -> Tuple[List[Finding], Optional[str], Optional[str]]:
+    *,
+    report_nonascii: bool = False,
+    fail_on_nonascii: bool = False,
+    check_trailing: bool = False,
+    check_line_endings: bool = False,
+    max_nonascii: int = 50,
+) -> tuple[list[Finding], list[Finding]]:
     """
-    Returns (findings, text_if_decoded, raw_line_endings)
+    Scan one file and return (warnings, errors).
     """
-    findings: List[Finding] = []
+    warnings: list[Finding] = []
+    errors: list[Finding] = []
 
     raw = path.read_bytes()
-    line_endings = detect_line_endings(raw) if check_line_endings else None
 
-    try:
-        text = raw.decode("utf-8", errors="strict")
-    except UnicodeDecodeError as e:
-        # Pinpoint failure position
-        findings.append(
-            Finding(
-                path=path,
-                line=None,
-                col=None,
-                codepoint=None,
-                kind="decode",
-                message=(
-                    "UTF-8 decode failed (strict). "
-                    f"Byte offset {e.start}..{e.end}; reason: {e.reason}."
-                ),
+    if check_line_endings:
+        if b"\r\n" in raw:
+            warnings.append(
+                Finding(
+                    path=path,
+                    line_no=0,
+                    kind="line_endings",
+                    message="CRLF line endings detected.",
+                    line="",
+                )
             )
-        )
-        return findings, None, line_endings
 
-    findings.extend(find_controls(text, path))
+    text = path.read_text(encoding="utf-8", errors="replace")
+    lines = text.splitlines()
 
-    if report_nonascii:
-        findings.extend(find_nonascii(text, path))
-
-    if check_trailing:
-        # Use normalized newlines for line indexing
-        norm = text.replace("\r\n", "\n").replace("\r", "\n")
-        lines = norm.split("\n")
-        # Drop the final empty split if file ends with newline (keeps numbering sensible)
-        if lines and lines[-1] == "":
-            lines = lines[:-1]
-        findings.extend(find_trailing_whitespace(lines, path))
-
-    if check_line_endings and line_endings in {"mixed", "cr"}:
-        findings.append(
-            Finding(
-                path=path,
-                line=None,
-                col=None,
-                codepoint=None,
-                kind="lineendings",
-                message=f"Line endings detected: {line_endings}. Consider normalizing to lf or crlf.",
+    for idx, line in enumerate(lines, start=1):
+        if check_trailing and line.rstrip(" \t") != line:
+            warnings.append(
+                Finding(
+                    path=path,
+                    line_no=idx,
+                    kind="trailing_whitespace",
+                    message="Trailing whitespace detected.",
+                    line=line,
+                )
             )
-        )
 
-    return findings, text, line_endings
+        if report_nonascii or fail_on_nonascii:
+            seen = []
+            for ch in _iter_nonascii_chars(line):
+                if ch not in seen:
+                    seen.append(ch)
+                if len(seen) >= max_nonascii:
+                    break
+
+            if seen:
+                chars_str = ", ".join(repr(ch) for ch in seen)
+                finding = Finding(
+                    path=path,
+                    line_no=idx,
+                    kind="nonascii",
+                    message=f"Non-ASCII characters detected: {chars_str}",
+                    line=line,
+                )
+                if fail_on_nonascii:
+                    errors.append(finding)
+                else:
+                    warnings.append(finding)
+
+    return warnings, errors
 
 
 def apply_fixes(
     path: Path,
-    text: str,
-    fix_line_endings: Optional[str],
-    strip_trailing: bool,
+    *,
+    strip_trailing: bool = False,
+    fix_line_endings: str | None = None,
 ) -> bool:
     """
-    Apply requested fixes. Returns True if file content changed.
+    Apply safe text fixes in place.
+
+    Returns
+    -------
+    bool
+        True if the file was modified.
     """
-    original = text
-    t = text
+    original = path.read_text(encoding="utf-8", errors="replace")
+    text = original
 
     if strip_trailing:
-        t = strip_trailing_ws(t)
+        text = "\n".join(line.rstrip(" \t") for line in text.splitlines())
+        if original.endswith("\n"):
+            text += "\n"
 
-    if fix_line_endings is not None:
-        t = normalize_line_endings(t, fix_line_endings)
+    if fix_line_endings:
+        normalized = text.replace("\r\n", "\n").replace("\r", "\n")
+        if fix_line_endings.lower() == "lf":
+            text = normalized
+        elif fix_line_endings.lower() == "crlf":
+            text = normalized.replace("\n", "\r\n")
+        else:
+            raise ValueError("fix_line_endings must be 'lf', 'crlf', or None")
 
-    if t != original:
-        path.write_text(t, encoding="utf-8", newline="")
+    if text != original:
+        path.write_text(text, encoding="utf-8", newline="")
         return True
 
     return False
 
 
-def format_finding(f: Finding, root: Path) -> str:
-    rel = f.path.resolve()
-    try:
-        rel = f.path.resolve().relative_to(root.resolve())
-    except Exception:
-        rel = f.path
+def format_finding(finding: Finding, *, show_line: bool = True) -> str:
+    """
+    Format a finding for terminal/report output.
+    """
+    loc = f"{finding.path}:{finding.line_no}" if finding.line_no else str(finding.path)
+    head = f"[{finding.kind}] {loc} - {finding.message}"
 
-    loc = ""
-    if f.line is not None and f.col is not None:
-        loc = f":{f.line}:{f.col}"
-    elif f.line is not None:
-        loc = f":{f.line}"
-
-    cp = ""
-    if f.codepoint is not None:
-        cp = f" [U+{f.codepoint:04X}]"
-
-    return f"{rel.as_posix()}{loc}: {f.kind}{cp}: {f.message}"
+    if show_line and finding.line:
+        return f"{head}\n    {finding.line}"
+    return head
 
 
-def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
-    p = argparse.ArgumentParser(
-        description="Scan Markdown manuals for UTF-8/control character issues that can break PDF compilation.",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-    )
-    p.add_argument("root", type=Path, help="Directory to scan (e.g., manual/).")
+def check_manual_chars(
+    root: Path,
+    *,
+    exts: set[str] | None = None,
+    include_hidden: bool = False,
+    report_nonascii: bool = False,
+    fail_on_nonascii: bool = False,
+    check_trailing: bool = False,
+    strip_trailing: bool = False,
+    check_line_endings: bool = False,
+    fix_line_endings: str | None = None,
+    max_nonascii: int = 50,
+    warnings_as_errors: bool = False,
+) -> CharScanResult:
+    """
+    Scan manual/documentation files under root and optionally apply safe fixes.
 
-    p.add_argument("--exts", type=str, default=".md,.markdown", help="Comma-separated file extensions to include.")
-    p.add_argument("--include-hidden", action="store_true", default=False, help="Include hidden files/directories.")
+    Parameters
+    ----------
+    root
+        Directory to scan.
+    exts
+        File extensions to include.
+    include_hidden
+        Whether to include hidden files/directories.
+    report_nonascii
+        Report non-ASCII characters as warnings.
+    fail_on_nonascii
+        Report non-ASCII characters as errors.
+    check_trailing
+        Check for trailing whitespace.
+    strip_trailing
+        Strip trailing whitespace in place before scanning.
+    check_line_endings
+        Check for CRLF line endings.
+    fix_line_endings
+        Normalize line endings to "lf" or "crlf" before scanning.
+    max_nonascii
+        Maximum unique non-ASCII characters to list per line finding.
+    warnings_as_errors
+        Promote warnings to errors in the returned result.
 
-    p.add_argument("--report-nonascii", action="store_true", default=False, help="Report all non-ASCII characters (warnings by default).")
-    p.add_argument("--fail-on-nonascii", action="store_true", default=False, help="Treat non-ASCII findings as errors.")
-
-    p.add_argument("--check-trailing", action="store_true", default=False, help="Report trailing whitespace.")
-    p.add_argument("--strip-trailing", action="store_true", default=False, help="Auto-fix: strip trailing whitespace.")
-
-    p.add_argument("--check-line-endings", action="store_true", default=False, help="Report mixed/CR line endings.")
-    p.add_argument("--fix-line-endings", choices=["lf", "crlf"], default=None, help="Auto-fix: normalize line endings.")
-
-    p.add_argument("--max-nonascii", type=int, default=50, help="Limit non-ASCII findings per file (for readability).")
-
-    p.add_argument("--warnings-as-errors", action="store_true", default=False, help="Treat warnings as errors (nonascii/trailing/lineendings).")
-
-    return p.parse_args(argv)
-
-
-def main(argv: Optional[List[str]] = None) -> int:
-    args = parse_args(argv)
-    root = args.root.resolve()
-
+    Returns
+    -------
+    CharScanResult
+    """
+    root = root.resolve()
     if not root.exists() or not root.is_dir():
-        print(f"ERROR: root is not a directory: {root}", file=sys.stderr)
-        return 2
+        raise FileNotFoundError(f"root does not exist or is not a directory: {root}")
 
-    exts = {e.strip().lower() for e in args.exts.split(",") if e.strip()}
-    exts = {("." + e) if not e.startswith(".") else e for e in exts}
+    result = CharScanResult(root=root)
+    targets = iter_target_files(root, exts=exts, include_hidden=include_hidden)
 
-    targets = iter_target_files(root, exts=exts, include_hidden=args.include_hidden)
-    if not targets:
-        print("No files matched. Nothing to do.")
-        return 0
+    for path in targets:
+        result.scanned_files.append(path)
 
-    all_findings: List[Finding] = []
-    fixed_files: List[Path] = []
+        modified = apply_fixes(
+            path,
+            strip_trailing=strip_trailing,
+            fix_line_endings=fix_line_endings,
+        )
+        if modified:
+            result.fixed_files.append(path)
 
-    for fp in targets:
-        findings, text, _ = scan_file(
-            path=fp,
-            root=root,
-            report_nonascii=args.report_nonascii or args.fail_on_nonascii,
-            check_trailing=args.check_trailing or args.strip_trailing,
-            check_line_endings=args.check_line_endings or (args.fix_line_endings is not None),
+        warnings, errors = scan_file(
+            path,
+            report_nonascii=report_nonascii,
+            fail_on_nonascii=fail_on_nonascii,
+            check_trailing=check_trailing,
+            check_line_endings=check_line_endings,
+            max_nonascii=max_nonascii,
         )
 
-        # Cap non-ascii spam per file (unless failing on it)
-        if (args.report_nonascii or args.fail_on_nonascii) and args.max_nonascii is not None:
-            nonascii = [f for f in findings if f.kind == "nonascii"]
-            if len(nonascii) > args.max_nonascii:
-                keep = nonascii[: args.max_nonascii]
-                dropped = len(nonascii) - len(keep)
-                findings = [f for f in findings if f.kind != "nonascii"] + keep
-                findings.append(
-                    Finding(
-                        path=fp,
-                        line=None,
-                        col=None,
-                        codepoint=None,
-                        kind="nonascii",
-                        message=f"Non-ASCII findings truncated for readability (+{dropped} more).",
-                    )
-                )
-
-        all_findings.extend(findings)
-
-        # Apply fixes only if decoding succeeded
-        if text is not None and (args.strip_trailing or args.fix_line_endings is not None):
-            changed = apply_fixes(
-                path=fp,
-                text=text,
-                fix_line_endings=args.fix_line_endings,
-                strip_trailing=args.strip_trailing,
-            )
-            if changed:
-                fixed_files.append(fp)
-
-    # Emit findings
-    errors: List[Finding] = []
-    warnings: List[Finding] = []
-
-    for f in all_findings:
-        if f.kind in {"decode", "control"}:
-            errors.append(f)
-        elif f.kind == "nonascii" and args.fail_on_nonascii:
-            errors.append(f)
-        elif args.warnings_as_errors:
-            errors.append(f)
+        if warnings_as_errors:
+            result.errors.extend(warnings)
         else:
-            warnings.append(f)
+            result.warnings.extend(warnings)
 
-    if fixed_files:
-        print("Fixed files:")
-        for fp in fixed_files:
-            try:
-                rel = fp.resolve().relative_to(root)
-            except Exception:
-                rel = fp
-            print(f"  - {rel.as_posix()}")
-        print("")
+        result.errors.extend(errors)
 
-    if warnings:
-        print("Warnings:")
-        for f in warnings:
-            print("  " + format_finding(f, root))
-        print("")
+    return result
 
-    if errors:
-        print("Errors:")
-        for f in errors:
-            print("  " + format_finding(f, root))
-        print("")
+
+def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Check manual/documentation files for character/content hygiene issues.",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    parser.add_argument("root", type=Path, help="Root directory to scan.")
+    parser.add_argument(
+        "--exts",
+        type=str,
+        default=".md,.markdown,.txt,.yaml,.yml,.toml,.json,.py",
+        help="Comma-separated list of file extensions to include.",
+    )
+    parser.add_argument(
+        "--include-hidden",
+        action="store_true",
+        help="Include hidden files and directories.",
+    )
+    parser.add_argument(
+        "--report-nonascii",
+        action="store_true",
+        help="Report non-ASCII characters as warnings.",
+    )
+    parser.add_argument(
+        "--fail-on-nonascii",
+        action="store_true",
+        help="Report non-ASCII characters as errors.",
+    )
+    parser.add_argument(
+        "--check-trailing",
+        action="store_true",
+        help="Check for trailing whitespace.",
+    )
+    parser.add_argument(
+        "--strip-trailing",
+        action="store_true",
+        help="Strip trailing whitespace in place before scanning.",
+    )
+    parser.add_argument(
+        "--check-line-endings",
+        action="store_true",
+        help="Check for CRLF line endings.",
+    )
+    parser.add_argument(
+        "--fix-line-endings",
+        choices=["lf", "crlf"],
+        default=None,
+        help="Normalize line endings before scanning.",
+    )
+    parser.add_argument(
+        "--max-nonascii",
+        type=int,
+        default=50,
+        help="Maximum unique non-ASCII characters to list per line.",
+    )
+    parser.add_argument(
+        "--warnings-as-errors",
+        action="store_true",
+        help="Promote warnings to errors for the final result/exit code.",
+    )
+    parser.add_argument(
+        "--no-line-context",
+        action="store_true",
+        help="Do not print offending line text in the report.",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: Optional[list[str]] = None) -> int:
+    args = parse_args(argv)
+
+    exts = normalize_exts(set(args.exts.split(",")))
+
+    try:
+        result = check_manual_chars(
+            args.root,
+            exts=exts,
+            include_hidden=args.include_hidden,
+            report_nonascii=args.report_nonascii,
+            fail_on_nonascii=args.fail_on_nonascii,
+            check_trailing=args.check_trailing,
+            strip_trailing=args.strip_trailing,
+            check_line_endings=args.check_line_endings,
+            fix_line_endings=args.fix_line_endings,
+            max_nonascii=args.max_nonascii,
+            warnings_as_errors=args.warnings_as_errors,
+        )
+    except Exception as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
         return 1
 
-    print("OK: No errors found.")
-    return 0
+    for line in result.report_lines(show_lines=not args.no_line_context):
+        print(line)
+
+    return 0 if result.ok else 1
 
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Dict, Optional, Union
+from typing import Dict, Literal, Optional, Union
 
 import streamlit as st
 
@@ -13,6 +13,10 @@ from .manual_index import (
     render_generated_tree_text,
     search_manual,
 )
+from .manual_outline import ensure_manual_outline
+
+
+OutlineMode = Literal["never", "if_missing", "always"]
 
 
 @st.cache_data(show_spinner=False)
@@ -33,14 +37,51 @@ def _toggle_selected(rel_str: str) -> None:
     st.rerun()
 
 
+def _validate_outline_mode(mode: str) -> OutlineMode:
+    allowed: set[str] = {"never", "if_missing", "always"}
+    if mode not in allowed:
+        raise ValueError(
+            f"ensure_outline must be one of {sorted(allowed)}, got: {mode!r}"
+        )
+    return mode  # type: ignore[return-value]
+
+
 def render_manual_ui(
     *,
     repo_root: Union[str, Path],
     manual_rel_dir: Union[str, Path] = "manual",
     expander_label: str = "📘 Show / Hide Instruction Manual",
+    ensure_outline: OutlineMode = "if_missing",
+    outline_title: str = "Instruction Manual",
+    outline_version: str = "0.0.0",
+    outline_max_depth: int | None = None,
 ) -> None:
+    """
+    Render a single-pane Streamlit manual viewer.
+
+    Parameters
+    ----------
+    repo_root
+        Repository root containing the manual directory.
+    manual_rel_dir
+        Manual directory relative to repo_root.
+    expander_label
+        Label for the top-level manual expander.
+    ensure_outline
+        Outline behavior:
+        - "never": do not generate/check the outline
+        - "if_missing": generate only if 00_outline.md is absent
+        - "always": rebuild 00_outline.md on each render
+    outline_title
+        Title used if the outline is generated.
+    outline_version
+        Version string used if the outline is generated.
+    outline_max_depth
+        Optional max depth for the generated outline tree.
+    """
     repo_root = Path(repo_root).resolve()
     manual_root = (repo_root / manual_rel_dir).resolve()
+    ensure_outline = _validate_outline_mode(ensure_outline)
 
     if "manual_selected" not in st.session_state:
         st.session_state.manual_selected = None
@@ -49,11 +90,24 @@ def render_manual_ui(
     if "manual_search" not in st.session_state:
         st.session_state.manual_search = ""
 
-    tree, flat = build_manual_index_cached(str(manual_root))
-
     if not manual_root.exists():
         st.warning(f"Manual directory not found: {manual_root}")
         return
+
+    if ensure_outline != "never":
+        try:
+            ensure_manual_outline(
+                manual_root,
+                manual_title=outline_title,
+                manual_version=outline_version,
+                max_depth=outline_max_depth,
+                if_missing_only=(ensure_outline == "if_missing"),
+            )
+        except Exception as exc:
+            st.warning(f"Could not prepare manual outline: {exc}")
+
+    tree, flat = build_manual_index_cached(str(manual_root))
+
     if not flat:
         st.warning(f"No markdown files found under: {manual_root}")
         return
