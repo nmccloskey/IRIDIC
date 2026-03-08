@@ -16,10 +16,6 @@ from .manual_index import (
     render_generated_tree_text,
     search_manual,
 )
-from .manual_viewer import (
-    render_manual_ui,
-    render_manual_ui_single_pane,
-)
 from .manual_outline import (
     build_manual_outline,
     ensure_manual_outline,
@@ -44,8 +40,6 @@ __all__ = [
     "read_text_safely",
     "render_generated_tree_text",
     "search_manual",
-    "render_manual_ui",
-    "render_manual_ui_single_pane",
     "build_manual_outline",
     "ensure_manual_outline",
     "check_manual_chars",
