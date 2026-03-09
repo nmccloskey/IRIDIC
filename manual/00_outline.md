@@ -1,7 +1,7 @@
 # Instruction Manual
 
 **Version:** 0.0.0  
-**Generated:** 2026-02-22  
+**Generated:** 2026-03-09  
 
 ---
 
@@ -15,7 +15,9 @@
 │   ├── 02_03_dependencies.md
 │   ├── 02_04_github_updates.md
 │   ├── 02_05_versioning.md
-│   └── 02_06_pypi_updates.md
+│   ├── 02_06_pypi_updates.md
+│   ├── 02_07_readmes.md
+│   └── 02_08_repo_structure.md
 └── 03_protocols/
     ├── 03_01_manual_export.md
     ├── 03_02_rename_repo.md
@@ -34,6 +36,8 @@
 - [02_04_github_updates.md — GitHub Workflow & Update Policy](02_policies/02_04_github_updates.md)
 - [02_05_versioning.md — Versioning Policy](02_policies/02_05_versioning.md)
 - [02_06_pypi_updates.md — PyPI Release & Update Policy](02_policies/02_06_pypi_updates.md)
+- [02_07_readmes.md — Repository README Policy](02_policies/02_07_readmes.md)
+- [02_08_repo_structure.md — Repository Structure Policy](02_policies/02_08_repo_structure.md)
 
 ### 03_protocols/
 - [03_01_manual_export.md — Manual Export Protocol](03_protocols/03_01_manual_export.md)
@@ -44,6 +48,6 @@
 
 ## Notes
 
-- Regenerate this file after adding/renaming manual sections.
+- Regenerate this file after adding or renaming manual sections.
 - Keep numeric prefixes stable to preserve predictable ordering.
-- For PDF builds, use this file as the “assembly” index (protocol-defined).
+- This outline is a derived support artifact for navigation and build workflows.

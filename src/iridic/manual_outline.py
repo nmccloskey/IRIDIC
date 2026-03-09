@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import argparse
 import datetime as _dt
-import sys
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -375,73 +373,22 @@ def ensure_manual_outline(
     )
 
 
-def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Auto-generate 00_outline.md for a modular Markdown manual.",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+def run_manual_outline(
+    manual_dir: Path,
+    *,
+    output_path: Path | None = None,
+    manual_title: str = "Instruction Manual",
+    manual_version: str = "0.0.0",
+    include_exts: set[str] | None = None,
+    max_depth: int | None = None,
+    if_missing_only: bool = True,
+) -> Path:
+    return ensure_manual_outline(
+        manual_dir,
+        output_path=output_path,
+        manual_title=manual_title,
+        manual_version=manual_version,
+        include_exts=include_exts,
+        max_depth=max_depth,
+        if_missing_only=if_missing_only,
     )
-    parser.add_argument("manual_dir", type=Path, help="Path to the manual directory to scan.")
-    parser.add_argument(
-        "-o",
-        "--output",
-        type=Path,
-        default=None,
-        help="Output outline file path. Default: <manual_dir>/00_outline.md",
-    )
-    parser.add_argument(
-        "--title",
-        type=str,
-        default="Instruction Manual",
-        help="Manual title for the outline header.",
-    )
-    parser.add_argument(
-        "--version",
-        type=str,
-        default="0.0.0",
-        help="Manual version string for the outline header.",
-    )
-    parser.add_argument(
-        "--exts",
-        type=str,
-        default=".md,.markdown",
-        help="Comma-separated list of file extensions to include.",
-    )
-    parser.add_argument(
-        "--max-depth",
-        type=int,
-        default=None,
-        help="Maximum directory depth to render in the tree.",
-    )
-    parser.add_argument(
-        "--if-missing-only",
-        action="store_true",
-        help="Only build the outline if it does not already exist.",
-    )
-    return parser.parse_args(argv)
-
-
-def main(argv: Optional[List[str]] = None) -> int:
-    args = parse_args(argv)
-
-    include_exts = normalize_exts(set(args.exts.split(",")))
-
-    try:
-        output = ensure_manual_outline(
-            args.manual_dir,
-            output_path=args.output,
-            manual_title=args.title,
-            manual_version=args.version,
-            include_exts=include_exts,
-            max_depth=args.max_depth,
-            if_missing_only=args.if_missing_only,
-        )
-    except Exception as exc:
-        print(f"ERROR: {exc}", file=sys.stderr)
-        return 1
-
-    print(f"Wrote outline: {output}")
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
