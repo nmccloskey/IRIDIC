@@ -8,7 +8,7 @@ CHAR_EXTS_DEFAULT = ".md,.markdown,.txt,.yaml,.yml,.toml,.json,.py"
 PDF_EXTS_DEFAULT = ".md,.markdown"
 
 
-def add_manual_dir_arg(parser: argparse.ArgumentParser, *, default: str = "manual") -> None:
+def add_manual_dir_arg(parser: argparse.ArgumentParser, *, default: str = "docs/manual") -> None:
     parser.add_argument(
         "manual_dir",
         nargs="?",
@@ -140,7 +140,7 @@ def add_pdf_compile_args(parser: argparse.ArgumentParser) -> None:
         "--yaml",
         dest="yaml_path",
         default=None,
-        help="Optional Pandoc metadata YAML file.",
+        help="Optional Pandoc metadata YAML file. Defaults to <manual_dir>/manual_pdf.yaml if present.",
     )
     parser.add_argument(
         "-o",

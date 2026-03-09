@@ -278,16 +278,20 @@ def build_manual_pdf(
     Path
         Written PDF path.
     """
-    manual_dir = manual_dir.resolve()
+    manual_dir = Path(manual_dir).resolve()
     if not manual_dir.exists() or not manual_dir.is_dir():
-        raise FileNotFoundError(f"manual_dir does not exist or is not a directory: {manual_dir}")
+        raise FileNotFoundError(
+            f"manual_dir does not exist or is not a directory: {manual_dir}"
+        )
 
-    yaml_path = yaml_path.resolve() if yaml_path is not None else None
+    yaml_path = Path(yaml_path).resolve() if yaml_path else (manual_dir / "manual_pdf.yaml")
+    if not yaml_path.exists():
+        yaml_path = None
 
     if output_path is None:
-        output_path = (manual_dir / f"{manual_dir.name}.pdf").resolve()
+        output_path = manual_dir.parent / "manual.pdf"
     else:
-        output_path = output_path.resolve()
+        output_path = Path(output_path).resolve()
 
     files = iter_markdown_files(
         manual_dir,

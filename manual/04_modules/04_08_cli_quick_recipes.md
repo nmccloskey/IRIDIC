@@ -1,15 +1,109 @@
+# Common CLI Workflows (Quick Start)
 
-# Common CLI Tasks (Quick Recipes)
+This section highlights **three practical workflows** for using the IRIDIC manual toolchain.
+These examples show progressively more complete uses of the system.
 
-This section provides **quick command-line recipes** for common IRIDIC manual tasks.
+After the examples, the section expands into **detailed task recipes**.
 
-The commands below assume the standard manual directory:
+---
+
+# Workflow 1 — Minimal
+
+The simplest possible manual build.
 
 ```
-manual/
+iridic pdf manual
 ```
 
-If your manual directory has a different name, replace `manual` accordingly.
+What happens:
+
+1. The manual directory is scanned.
+2. An outline is generated if needed.
+3. character/content checks run.
+4. the manual is compiled into a PDF.
+
+This is the **fastest way to build a manual** when default settings are acceptable.
+
+---
+
+# Workflow 2 — Recommended (Typical Use)
+
+A slightly more explicit and reproducible workflow.
+
+```
+iridic chars manual --check-trailing
+iridic outline manual
+iridic pdf manual --yaml manual/manual_pdf.yaml
+```
+
+What this does:
+
+1. **Validate documentation formatting**
+2. **Ensure the navigation outline exists**
+3. **Compile the PDF using a Pandoc YAML configuration**
+
+This is the **recommended IRIDIC workflow** because the YAML file ensures consistent document styling.
+
+---
+
+# Workflow 3 — Full Explicit Pipeline
+
+A more verbose workflow that demonstrates every major module.
+
+```
+iridic tree manual
+iridic search "installation"
+iridic index manual
+
+iridic chars manual --check-trailing --report-nonascii
+
+iridic outline manual   --title "IRIDIC Instruction Manual"   --version 0.1.0
+
+iridic pdf manual   --yaml manual/manual_pdf.yaml   --margin 1in   --toc-depth 3
+```
+
+This workflow:
+
+1. explores the manual structure
+2. searches documentation
+3. validates documentation hygiene
+4. regenerates the navigation outline
+5. compiles the final PDF
+
+This is helpful during **manual development and debugging**.
+
+---
+
+# Manual Pipeline Architecture
+
+The IRIDIC manual system follows a modular pipeline.
+
+```
+Markdown manual files
+        │
+        ▼
+manual_index  (indexing and search)
+        │
+        ▼
+manual_outline (outline generation)
+        │
+        ▼
+manual_chars   (documentation validation)
+        │
+        ▼
+manual_pdf     (Pandoc compilation)
+        │
+        ▼
+Compiled Manual PDF
+```
+
+Optional:
+
+```
+manual_viewer → interactive manual inside Streamlit applications
+```
+
+Each stage is **independent and composable**, which allows developers to run only the steps they need.
 
 ---
 
@@ -237,45 +331,34 @@ iridic pdf manual   --yaml manual/manual_pdf.yaml   --extra-pandoc-arg "--citepr
 
 ---
 
+
 # Controlling Preflight Checks
 
-The PDF command normally runs validation steps before compilation.
-
----
-
-## Skip outline generation
+Skip outline generation:
 
 ```
 iridic pdf manual --skip-outline
 ```
 
----
-
-## Force outline rebuild
+Force outline rebuild:
 
 ```
 iridic pdf manual --rebuild-outline
 ```
 
----
-
-## Skip character validation
+Skip character validation:
 
 ```
 iridic pdf manual --skip-chars
 ```
 
----
-
-## Run compilation non‑interactively
+Run compilation non‑interactively:
 
 ```
 iridic pdf manual --non-interactive
 ```
 
----
-
-## Force compilation even if issues are detected
+Proceed even if issues are detected:
 
 ```
 iridic pdf manual --force
@@ -283,9 +366,17 @@ iridic pdf manual --force
 
 ---
 
-# Full Recommended Workflow
+# Summary
 
-A typical manual build sequence:
+The IRIDIC CLI supports workflows ranging from **single‑command builds** to **fully explicit manual pipelines**.
+
+Most users will prefer:
+
+```
+iridic pdf manual
+```
+
+or the slightly more explicit:
 
 ```
 iridic chars manual --check-trailing
@@ -293,21 +384,4 @@ iridic outline manual
 iridic pdf manual --yaml manual/manual_pdf.yaml
 ```
 
-This sequence:
-
-1. validates documentation
-2. ensures the outline exists
-3. compiles the manual PDF
-
----
-
-# Summary
-
-These quick recipes cover the most common IRIDIC manual workflows:
-
-- exploring manual structure
-- validating documentation formatting
-- generating navigation outlines
-- compiling distributable PDF manuals
-
-For a complete list of CLI options, see the **CLI Command Reference** section.
+For full command documentation, see the **CLI Command Reference** section.
