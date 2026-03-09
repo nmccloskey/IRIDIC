@@ -17,7 +17,7 @@ def add_manual_dir_arg(parser: argparse.ArgumentParser, *, default: str = "docs/
     )
 
 
-def add_root_arg(parser: argparse.ArgumentParser, *, default: str = "manual") -> None:
+def add_root_arg(parser: argparse.ArgumentParser, *, default: str = "docs/manual") -> None:
     parser.add_argument(
         "root",
         nargs="?",

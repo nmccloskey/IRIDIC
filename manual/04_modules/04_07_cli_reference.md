@@ -70,7 +70,7 @@ iridic tree [manual_dir]
 
 | Argument | Description |
 |--------|-------------|
-| `manual_dir` | Path to the manual directory (default: `manual`) |
+| `manual_dir` | Path to the manual directory (default: `docs/manual`) |
 
 ### Example
 
@@ -99,7 +99,7 @@ iridic search <query> [manual_dir]
 | Argument | Description |
 |--------|-------------|
 | `query` | Search string |
-| `manual_dir` | Manual directory (default: `manual`) |
+| `manual_dir` | Manual directory (default: `docs/manual`) |
 
 ### Options
 
@@ -129,7 +129,7 @@ iridic index [manual_dir]
 
 | Argument | Description |
 |--------|-------------|
-| `manual_dir` | Manual directory (default: `manual`) |
+| `manual_dir` | Manual directory (default: `docs/manual`) |
 
 ### Options
 
@@ -163,7 +163,7 @@ iridic outline [manual_dir] [options]
 
 | Option | Description | Default |
 |------|-------------|--------|
-| `-o`, `--output` | Output outline path | auto |
+| `-o`, `--output` | Output outline path | `docs/manual` |
 | `--title` | Manual title | "Instruction Manual" |
 | `--version` | Manual version | "0.0.0" |
 | `--exts` | File extensions to include | `.md,.markdown` |
@@ -202,7 +202,7 @@ iridic chars [root] [options]
 
 | Argument | Description |
 |--------|-------------|
-| `root` | Root directory to scan (default: `manual`) |
+| `root` | Root directory to scan (default: `docs/manual`) |
 
 ### File selection
 
@@ -261,8 +261,8 @@ iridic pdf [manual_dir] [options]
 
 | Option | Description | Default |
 |------|-------------|--------|
-| `-y`, `--yaml` | Pandoc metadata YAML file | None |
-| `-o`, `--output` | Output PDF path | auto |
+| `-y`, `--yaml` | Pandoc metadata YAML file | `[manual dir]/manual_pdf.yaml` |
+| `-o`, `--output` | Output PDF path | `docs` |
 | `--pandoc` | Pandoc executable | pandoc |
 | `--pdf-engine` | Pandoc PDF engine | xelatex |
 | `--exts` | File extensions included | `.md,.markdown` |

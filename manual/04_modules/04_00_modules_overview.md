@@ -21,33 +21,87 @@ Together, these modules transform a simple directory of Markdown files into a **
 
 # Manual Architecture
 
-An IRIDIC manual is typically organized as a directory tree such as:
+IRIDIC manuals follow a **source–artifact separation** pattern: the manual's Markdown
+source lives in `docs/manual/`, while compiled artifacts (such as PDFs) live in
+`docs/`. This keeps source files clean and prevents generated outputs from mixing
+with author-maintained content.
+
+A typical structure looks like:
 
 ```
-manual/
-    00_outline.md
-    01_introduction.md
-    02_installation.md
-    03_workflow/
-        03_01_overview.md
-        03_02_transcript_tables.md
-    04_outputs.md
-    manual_pdf.yaml
+docs/
+├── manual/
+│   ├── 00_outline.md
+│   ├── 01_introduction.md
+│   ├── 02_installation.md
+│   ├── 03_workflow/
+│   │   ├── 03_01_overview.md
+│   │   └── 03_02_transcript_tables.md
+│   └── manual_pdf.yaml
+├── lineage.md
+└── iridic_manual.pdf   # generated (gitignored)
 ```
 
-Key design principles include:
+## Design Principles
 
-**Modular documentation**  
-Each section is written as an independent Markdown file.
+### Modular documentation
+Each section is written as an independent Markdown file.  
+This allows sections to be edited, reordered, or expanded without modifying a
+monolithic document.
 
-**Deterministic ordering**  
-Numeric prefixes (`01_`, `02_`, `03_01_`) define the manual's structure.
+### Deterministic ordering
+Numeric prefixes (`01_`, `02_`, `03_01_`, etc.) define the manual’s logical order.
+This makes the structure explicit and keeps rendering deterministic regardless of
+filesystem ordering.
 
-**Filesystem transparency**  
-The manual remains readable and navigable directly from the repository.
+### Filesystem transparency
+The manual is readable and navigable directly from the repository.  
+Anyone browsing the repo can follow the manual structure without needing the
+compiled PDF.
 
-**Derived artifacts**  
-Files such as `00_outline.md` and compiled PDFs are generated automatically.
+### Derived artifacts
+Certain files are generated automatically rather than authored manually.
+
+Typical derived artifacts include:
+
+- `00_outline.md` – an auto-generated structural outline of the manual.
+- `docs/<repo>_manual.pdf` – the compiled manual produced via Pandoc.
+
+Generated artifacts should **not normally be committed to the repository**.
+
+### Local configuration
+Pandoc build settings live alongside the manual source in:
+
+```
+docs/manual/manual_pdf.yaml
+```
+
+This YAML file defines document metadata and Pandoc configuration such as:
+
+- title and subtitle
+- page geometry
+- fonts and LaTeX settings
+- table of contents configuration
+
+Placing the config in the manual directory ensures that build settings travel with
+the manual itself.
+
+## Recommended `.gitignore` Entries
+
+Compiled manuals and temporary build artifacts should usually be ignored.  
+Typical entries include:
+
+```
+# Generated manuals
+docs/*_manual.pdf
+docs/manual.pdf
+
+# Optional build directories
+docs/build/
+```
+
+This keeps the repository focused on **source documentation**, while allowing local
+PDF builds for distribution or review.
 
 ---
 
