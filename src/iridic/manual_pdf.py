@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-import argparse
 import shutil
 import subprocess
-import sys
 import tempfile
 from pathlib import Path
-from typing import Iterable, Optional
+from typing import Iterable
 
 
 MD_EXTS = {".md", ".markdown"}
@@ -29,9 +27,7 @@ def resolve_executable(name: str) -> str:
     """
     resolved = shutil.which(name)
     if not resolved:
-        raise FileNotFoundError(
-            f"Required executable not found on PATH: {name}"
-        )
+        raise FileNotFoundError(f"Required executable not found on PATH: {name}")
     return resolved
 
 
@@ -143,6 +139,35 @@ def assemble_markdown(
     return "\n\n".join(chunks).strip() + ("\n" if chunks else "")
 
 
+def build_pandoc_extra_args(
+    *,
+    margin: str | None = None,
+    toc: bool = True,
+    toc_depth: int | None = 3,
+    extra_pandoc_args: list[str] | None = None,
+) -> list[str]:
+    """
+    Build Pandoc CLI args for manual PDF compilation.
+
+    Command-line flags are appended after any metadata file so they can
+    override YAML defaults when appropriate.
+    """
+    args: list[str] = []
+
+    if toc:
+        args.append("--toc")
+        if toc_depth is not None:
+            args.extend(["--toc-depth", str(toc_depth)])
+
+    if margin:
+        args.extend(["-V", f"geometry:margin={margin}"])
+
+    if extra_pandoc_args:
+        args.extend(extra_pandoc_args)
+
+    return args
+
+
 def run_pandoc(
     *,
     markdown_path: Path,
@@ -151,9 +176,6 @@ def run_pandoc(
     pdf_engine: str = "xelatex",
     yaml_path: Path | None = None,
     extra_args: list[str] | None = None,
-    margin: str = "1in",
-    toc: bool = True,
-    toc_depth: int = 3,
 ) -> None:
     """
     Run pandoc to compile a markdown file to PDF.
@@ -167,8 +189,6 @@ def run_pandoc(
         str(output_path),
         "--pdf-engine",
         pdf_engine,
-        "-V",
-        f"geometry:margin={margin}",
     ]
 
     if yaml_path is not None:
@@ -176,10 +196,6 @@ def run_pandoc(
 
     if extra_args:
         cmd.extend(extra_args)
-
-    if toc:
-        cmd.append("--toc")
-        cmd.extend(["--toc-depth", str(toc_depth)])
 
     proc = subprocess.run(
         cmd,
@@ -213,9 +229,9 @@ def build_manual_pdf(
     extra_pandoc_args: list[str] | None = None,
     keep_temp_md: bool = False,
     temp_md_path: Path | None = None,
-    margin: str = "1in",
+    margin: str | None = None,
     toc: bool = True,
-    toc_depth: int = 3
+    toc_depth: int | None = None,
 ) -> Path:
     """
     Build a PDF manual from modular markdown files.
@@ -250,6 +266,12 @@ def build_manual_pdf(
         Keep the assembled temporary markdown file.
     temp_md_path
         Explicit path for the assembled markdown file.
+    margin
+        Optional page margin override passed to Pandoc, e.g. '1in' or '2.2cm'.
+    toc
+        Whether to request an auto-generated table of contents.
+    toc_depth
+        Heading depth for the table of contents when toc is enabled.
 
     Returns
     -------
@@ -285,6 +307,13 @@ def build_manual_pdf(
         file_dividers=file_dividers,
     )
 
+    pandoc_args = build_pandoc_extra_args(
+        margin=margin,
+        toc=toc,
+        toc_depth=toc_depth,
+        extra_pandoc_args=extra_pandoc_args,
+    )
+
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     if temp_md_path is not None:
@@ -316,130 +345,10 @@ def build_manual_pdf(
             pandoc=pandoc,
             pdf_engine=pdf_engine,
             yaml_path=yaml_path,
-            extra_args=extra_pandoc_args,
-            margin=margin,
-            toc=toc,
-            toc_depth=toc_depth
+            extra_args=pandoc_args,
         )
     finally:
         if cleanup and md_path.exists():
             md_path.unlink(missing_ok=True)
 
     return output_path
-
-
-def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Compile a modular markdown manual to PDF with Pandoc.",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-    )
-    parser.add_argument("manual_dir", type=Path, help="Path to the manual directory.")
-    parser.add_argument(
-        "-y",
-        "--yaml",
-        dest="yaml_path",
-        type=Path,
-        default=None,
-        help="Optional Pandoc metadata YAML file.",
-    )
-    parser.add_argument(
-        "-o",
-        "--output",
-        dest="output_path",
-        type=Path,
-        default=None,
-        help="Output PDF path. Default: <manual_dir>/<manual_dir_name>.pdf",
-    )
-    parser.add_argument(
-        "--pandoc",
-        default="pandoc",
-        help="Pandoc executable name or path.",
-    )
-    parser.add_argument(
-        "--pdf-engine",
-        default="xelatex",
-        help="Pandoc PDF engine.",
-    )
-    parser.add_argument(
-        "--no-pagebreaks",
-        action="store_true",
-        help="Do not insert page breaks between manual sections.",
-    )
-    parser.add_argument(
-        "--keep-heading-numbers",
-        action="store_true",
-        help="Keep numeric prefixes in headings.",
-    )
-    parser.add_argument(
-        "--include-outline",
-        action="store_true",
-        help="Include 00_outline.md in the assembled PDF.",
-    )
-    parser.add_argument(
-        "--outline-name",
-        default="00_outline.md",
-        help="Outline filename to exclude/include.",
-    )
-    parser.add_argument(
-        "--exts",
-        default=".md,.markdown",
-        help="Comma-separated list of included file extensions.",
-    )
-    parser.add_argument(
-        "--file-dividers",
-        action="store_true",
-        help="Insert HTML file-boundary comments into the assembled markdown.",
-    )
-    parser.add_argument(
-        "--extra-pandoc-arg",
-        dest="extra_pandoc_args",
-        action="append",
-        default=None,
-        help="Extra argument to pass through to Pandoc. Repeat as needed.",
-    )
-    parser.add_argument(
-        "--keep-temp-md",
-        action="store_true",
-        help="Keep the assembled temporary markdown file.",
-    )
-    parser.add_argument(
-        "--temp-md-path",
-        type=Path,
-        default=None,
-        help="Write assembled markdown to this path instead of a temporary file.",
-    )
-    return parser.parse_args(argv)
-
-
-def main(argv: Optional[list[str]] = None) -> int:
-    args = parse_args(argv)
-
-    include_exts = normalize_exts(set(args.exts.split(",")))
-
-    try:
-        output = build_manual_pdf(
-            args.manual_dir,
-            yaml_path=args.yaml_path,
-            output_path=args.output_path,
-            pandoc=args.pandoc,
-            pdf_engine=args.pdf_engine,
-            pagebreaks=not args.no_pagebreaks,
-            strip_heading_numbers=not args.keep_heading_numbers,
-            include_outline=args.include_outline,
-            outline_name=args.outline_name,
-            include_exts=include_exts,
-            file_dividers=args.file_dividers,
-            extra_pandoc_args=args.extra_pandoc_args,
-            keep_temp_md=args.keep_temp_md,
-            temp_md_path=args.temp_md_path,
-        )
-    except Exception as exc:
-        print(f"ERROR: {exc}", file=sys.stderr)
-        return 1
-
-    print(f"Wrote PDF: {output}")
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
