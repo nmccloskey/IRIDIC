@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import argparse
-import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterable, Optional
@@ -331,101 +329,36 @@ def check_manual_chars(
     return result
 
 
-def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Check manual/documentation files for character/content hygiene issues.",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+def run_manual_chars(
+    root: Path,
+    *,
+    exts: set[str] | None = None,
+    include_hidden: bool = False,
+    report_nonascii: bool = False,
+    fail_on_nonascii: bool = False,
+    check_trailing: bool = False,
+    strip_trailing: bool = False,
+    check_line_endings: bool = False,
+    fix_line_endings: str | None = None,
+    max_nonascii: int = 50,
+    warnings_as_errors: bool = False,
+    show_lines: bool = True,
+) -> int:
+    result = check_manual_chars(
+        root,
+        exts=exts,
+        include_hidden=include_hidden,
+        report_nonascii=report_nonascii,
+        fail_on_nonascii=fail_on_nonascii,
+        check_trailing=check_trailing,
+        strip_trailing=strip_trailing,
+        check_line_endings=check_line_endings,
+        fix_line_endings=fix_line_endings,
+        max_nonascii=max_nonascii,
+        warnings_as_errors=warnings_as_errors,
     )
-    parser.add_argument("root", type=Path, help="Root directory to scan.")
-    parser.add_argument(
-        "--exts",
-        type=str,
-        default=".md,.markdown,.txt,.yaml,.yml,.toml,.json,.py",
-        help="Comma-separated list of file extensions to include.",
-    )
-    parser.add_argument(
-        "--include-hidden",
-        action="store_true",
-        help="Include hidden files and directories.",
-    )
-    parser.add_argument(
-        "--report-nonascii",
-        action="store_true",
-        help="Report non-ASCII characters as warnings.",
-    )
-    parser.add_argument(
-        "--fail-on-nonascii",
-        action="store_true",
-        help="Report non-ASCII characters as errors.",
-    )
-    parser.add_argument(
-        "--check-trailing",
-        action="store_true",
-        help="Check for trailing whitespace.",
-    )
-    parser.add_argument(
-        "--strip-trailing",
-        action="store_true",
-        help="Strip trailing whitespace in place before scanning.",
-    )
-    parser.add_argument(
-        "--check-line-endings",
-        action="store_true",
-        help="Check for CRLF line endings.",
-    )
-    parser.add_argument(
-        "--fix-line-endings",
-        choices=["lf", "crlf"],
-        default=None,
-        help="Normalize line endings before scanning.",
-    )
-    parser.add_argument(
-        "--max-nonascii",
-        type=int,
-        default=50,
-        help="Maximum unique non-ASCII characters to list per line.",
-    )
-    parser.add_argument(
-        "--warnings-as-errors",
-        action="store_true",
-        help="Promote warnings to errors for the final result/exit code.",
-    )
-    parser.add_argument(
-        "--no-line-context",
-        action="store_true",
-        help="Do not print offending line text in the report.",
-    )
-    return parser.parse_args(argv)
 
-
-def main(argv: Optional[list[str]] = None) -> int:
-    args = parse_args(argv)
-
-    exts = normalize_exts(set(args.exts.split(",")))
-
-    try:
-        result = check_manual_chars(
-            args.root,
-            exts=exts,
-            include_hidden=args.include_hidden,
-            report_nonascii=args.report_nonascii,
-            fail_on_nonascii=args.fail_on_nonascii,
-            check_trailing=args.check_trailing,
-            strip_trailing=args.strip_trailing,
-            check_line_endings=args.check_line_endings,
-            fix_line_endings=args.fix_line_endings,
-            max_nonascii=args.max_nonascii,
-            warnings_as_errors=args.warnings_as_errors,
-        )
-    except Exception as exc:
-        print(f"ERROR: {exc}", file=sys.stderr)
-        return 1
-
-    for line in result.report_lines(show_lines=not args.no_line_context):
+    for line in result.report_lines(show_lines=show_lines):
         print(line)
 
     return 0 if result.ok else 1
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
