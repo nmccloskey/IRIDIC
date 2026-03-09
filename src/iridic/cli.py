@@ -246,6 +246,9 @@ def cmd_pdf(args: argparse.Namespace) -> int:
             extra_pandoc_args=args.extra_pandoc_args,
             keep_temp_md=args.keep_temp_md,
             temp_md_path=temp_md_path,
+            margin=args.margin,
+            toc=not args.no_toc,
+            toc_depth=args.toc_depth,
         )
     except Exception as exc:
         print(f"[iridic] ERROR during PDF build: {exc}", file=sys.stderr)
@@ -590,6 +593,22 @@ def build_parser() -> argparse.ArgumentParser:
         "--force",
         action="store_true",
         help="Proceed to PDF compilation even if issues are found.",
+    )
+    p_pdf.add_argument(
+        "--margin",
+        default="1in",
+        help="Page margin passed to Pandoc geometry, e.g. 1in or 0.8in.",
+    )
+    p_pdf.add_argument(
+        "--no-toc",
+        action="store_true",
+        help="Do not include an automated table of contents.",
+    )
+    p_pdf.add_argument(
+        "--toc-depth",
+        type=int,
+        default=3,
+        help="Pandoc table-of-contents depth.",
     )
 
     p_pdf.set_defaults(func=cmd_pdf)

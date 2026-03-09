@@ -151,6 +151,9 @@ def run_pandoc(
     pdf_engine: str = "xelatex",
     yaml_path: Path | None = None,
     extra_args: list[str] | None = None,
+    margin: str = "1in",
+    toc: bool = True,
+    toc_depth: int = 3,
 ) -> None:
     """
     Run pandoc to compile a markdown file to PDF.
@@ -164,6 +167,8 @@ def run_pandoc(
         str(output_path),
         "--pdf-engine",
         pdf_engine,
+        "-V",
+        f"geometry:margin={margin}",
     ]
 
     if yaml_path is not None:
@@ -171,6 +176,10 @@ def run_pandoc(
 
     if extra_args:
         cmd.extend(extra_args)
+
+    if toc:
+        cmd.append("--toc")
+        cmd.extend(["--toc-depth", str(toc_depth)])
 
     proc = subprocess.run(
         cmd,
@@ -204,6 +213,9 @@ def build_manual_pdf(
     extra_pandoc_args: list[str] | None = None,
     keep_temp_md: bool = False,
     temp_md_path: Path | None = None,
+    margin: str = "1in",
+    toc: bool = True,
+    toc_depth: int = 3
 ) -> Path:
     """
     Build a PDF manual from modular markdown files.
@@ -305,6 +317,9 @@ def build_manual_pdf(
             pdf_engine=pdf_engine,
             yaml_path=yaml_path,
             extra_args=extra_pandoc_args,
+            margin=margin,
+            toc=toc,
+            toc_depth=toc_depth
         )
     finally:
         if cleanup and md_path.exists():
