@@ -264,11 +264,11 @@ This block injects raw LaTeX into the Pandoc build.
 
 It is the most powerful section of the YAML file, and also the one that should be edited most cautiously.
 
-### `etoolbox` + `pptocmd`
+### `etoolbox` + `pptocmd`
 This appends a page break after the table of contents:
 
 ```latex
-pptocmd{	ableofcontents}{\clearpage}{}{}
+pptocmd{	ableofcontents}{\clearpage}{}{}
 ```
 
 That is useful because it ensures the TOC does not run directly into the first manual section.
@@ -290,7 +290,7 @@ This improves code block rendering.
 Current setting:
 
 ```latex
-vset{breaklines=true,breakanywhere=true}
+vset{breaklines=true,breakanywhere=true}
 ```
 
 This is especially useful for manuals containing:
