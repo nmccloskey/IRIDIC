@@ -5,7 +5,7 @@ from typing import Dict, Literal, Optional, Union
 
 import streamlit as st
 
-from .manual_index import (
+from .manual.index import (
     ManualFile,
     TreeNode,
     build_manual_index,
@@ -13,7 +13,7 @@ from .manual_index import (
     render_generated_tree_text,
     search_manual,
 )
-from .manual_outline import ensure_manual_outline
+from .manual.outline import ensure_manual_outline
 
 
 OutlineMode = Literal["never", "if_missing", "always"]
