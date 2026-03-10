@@ -46,7 +46,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]  # webapp/ -> REPO/
 
 render_manual_ui(
     repo_root=REPO_ROOT,
-    manual_rel_dir="manual",
+    manual_rel_dir="docs/manual",
     expander_label="📘 Show / Hide IRIDIC Manual Menu",
 )
 
