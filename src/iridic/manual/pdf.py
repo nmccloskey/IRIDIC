@@ -199,10 +199,12 @@ def run_pandoc(
 
     proc = subprocess.run(
         cmd,
-        check=False,
         capture_output=True,
-        text=True,
+        text=False,
     )
+
+    stdout = proc.stdout.decode("utf-8", errors="replace")
+    stderr = proc.stderr.decode("utf-8", errors="replace")
 
     if proc.returncode != 0:
         stderr = proc.stderr.strip()
