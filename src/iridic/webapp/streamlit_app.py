@@ -7,6 +7,9 @@ from pathlib import Path
 import random, numpy as np
 from datetime import datetime
 
+from iridic import __version__
+from iridic import render_manual_ui  
+
 start_time = datetime.now()
 
 # ------------------------------------------------------------------
@@ -29,20 +32,12 @@ def zip_folder(folder_path: Path) -> BytesIO:
     zip_buffer.seek(0)
     return zip_buffer
 
-
-# ------------------------------------------------------------------
-# IRIDIC imports
-# ------------------------------------------------------------------
-from iridic import __version__
-
-from iridic import render_manual_ui  
-
-
 # ------------------------------------------------------------------
 # Streamlit header
 # ------------------------------------------------------------------
 st.title("IRIDIC Web App")
 st.subheader("Idiosyncratic Repository of Initialization and Development Itineraries for Codebases \n(a personal meta-repository)")
+st.subheader(f"version: {__version__}")
 
 # ------------------------------------------------------------------
 # Instruction manual toggle
@@ -56,83 +51,70 @@ render_manual_ui(
 )
 
 
-# ---------------------------------------------------------------
-# PART 2: INPUT FILES
-# ---------------------------------------------------------------
-st.header("Upload input files")
-md_files = st.file_uploader("Upload input files", type=["md"], accept_multiple_files=True)
+# # ---------------------------------------------------------------
+# # PART 2: INPUT FILES
+# # ---------------------------------------------------------------
+# st.header("Upload input files")
+# md_files = st.file_uploader("Upload input files", type=["md"], accept_multiple_files=True)
 
-with tempfile.TemporaryDirectory() as tmpdir:
-    root_dir = Path(tmpdir).resolve()
+# with tempfile.TemporaryDirectory() as tmpdir:
+#     root_dir = Path(tmpdir).resolve()
 
-    input_dir = (root_dir / "input").resolve()
-    output_dir = (root_dir / "output").resolve()
-    input_dir.mkdir(exist_ok=True)
-    output_dir.mkdir(exist_ok=True)
+#     input_dir = (root_dir / "input").resolve()
+#     output_dir = (root_dir / "output").resolve()
+#     input_dir.mkdir(exist_ok=True)
+#     output_dir.mkdir(exist_ok=True)
 
-    # Save uploaded input files
-    for file in md_files:
-        file_path = input_dir / file.name
-        with file_path.open("wb") as f:
-            f.write(file.read())
+#     # Save uploaded input files
+#     for file in md_files:
+#         file_path = input_dir / file.name
+#         with file_path.open("wb") as f:
+#             f.write(file.read())
 
-    # Create timestamped output folder and logger
-    timestamp = start_time.strftime("%y%m%d_%H%M")
-    out_dir = (output_dir / f"diaad_output_{timestamp}").resolve()
-    out_dir.mkdir(parents=True, exist_ok=True)
+#     # Create timestamped output folder and logger
+#     timestamp = start_time.strftime("%y%m%d_%H%M")
+#     out_dir = (output_dir / f"diaad_output_{timestamp}").resolve()
+#     out_dir.mkdir(parents=True, exist_ok=True)
 
-    # ---------------------------------------------------------------
-    # PART 3: FUNCTION SELECTION
-    # ---------------------------------------------------------------
-    st.header("Part 3: Select function(s) to run")
-    all_functions = [
-        "1a. Select transcription reliability samples",
-        "3a. Evaluate transcription reliability",
-        "3b. Reselect transcription reliability samples",
-        "4a. Make transcript tables",
-        "4b. Make CU coding & reliability files",
-        "6a. Evaluate CU reliability",
-        "6b. Reselect CU reliability samples",
-        "7a. Analyze CU coding",
-        "7b. Make word count files",
-        "9a. Evaluate word count reliability",
-        "9b. Reselect word count reliability samples",
-        "10a. Summarize CU samples",
-        "10b. Run CoreLex analysis"
-    ]
+#     # ---------------------------------------------------------------
+#     # PART 3: FUNCTION SELECTION
+#     # ---------------------------------------------------------------
+#     st.header("Part 3: Select function(s) to run")
+#     all_functions = [
+#     ]
 
-    selected_funcs = st.multiselect("Select functions", all_functions)
+#     selected_funcs = st.multiselect("Select functions", all_functions)
 
-    if st.button("Run selected functions"):
-        if not selected_funcs:
-            st.warning("Please select at least one function.")
-            st.stop()
+#     if st.button("Run selected functions"):
+#         if not selected_funcs:
+#             st.warning("Please select at least one function.")
+#             st.stop()
 
-        try:
+#         try:
 
-            # --- Execute selected functions ---
-            for func in selected_funcs:
-                ...
+#             # --- Execute selected functions ---
+#             for func in selected_funcs:
+#                 ...
 
 
-            st.success("✅ All selected functions completed successfully!")
+#             st.success("✅ All selected functions completed successfully!")
 
-        except Exception as e:
-            st.error(
-                "❌ An unexpected error occurred while running IRIDIC. "
-                "Please check the logs in the downloaded ZIP for details."
-            )
+#         except Exception as e:
+#             st.error(
+#                 "❌ An unexpected error occurred while running IRIDIC. "
+#                 "Please check the logs in the downloaded ZIP for details."
+#             )
 
 
-        # --- Create timestamped ZIP for download ---
-        timestamp = start_time.strftime("%y%m%d_%H%M")
-        zip_buffer = zip_folder(out_dir)
-        st.download_button(
-            label="⬇️ Download Results ZIP",
-            data=zip_buffer,
-            file_name=f"diaad_web_output_{timestamp}.zip",
-            mime="application/zip"
-        )
+#         # --- Create timestamped ZIP for download ---
+#         timestamp = start_time.strftime("%y%m%d_%H%M")
+#         zip_buffer = zip_folder(out_dir)
+#         st.download_button(
+#             label="⬇️ Download Results ZIP",
+#             data=zip_buffer,
+#             file_name=f"diaad_web_output_{timestamp}.zip",
+#             mime="application/zip"
+#         )
 
 def main():
     """Launch this file as a Streamlit app."""
