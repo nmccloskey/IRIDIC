@@ -8,7 +8,11 @@ CHAR_EXTS_DEFAULT = ".md,.markdown,.txt,.yaml,.yml,.toml,.json,.py"
 PDF_EXTS_DEFAULT = ".md,.markdown"
 
 
-def add_manual_dir_arg(parser: argparse.ArgumentParser, *, default: str = "docs/manual") -> None:
+def add_manual_dir_arg(
+    parser: argparse.ArgumentParser,
+    *,
+    default: str = "docs/manual",
+) -> None:
     parser.add_argument(
         "manual_dir",
         nargs="?",
@@ -17,7 +21,11 @@ def add_manual_dir_arg(parser: argparse.ArgumentParser, *, default: str = "docs/
     )
 
 
-def add_root_arg(parser: argparse.ArgumentParser, *, default: str = "docs/manual") -> None:
+def add_root_arg(
+    parser: argparse.ArgumentParser,
+    *,
+    default: str = "docs/manual",
+) -> None:
     parser.add_argument(
         "root",
         nargs="?",
@@ -40,59 +48,88 @@ def add_exts_arg(
 
 
 def add_char_check_args(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument(
+    scan_group = parser.add_argument_group("character scan")
+    scan_group.add_argument(
         "--include-hidden",
         action="store_true",
         help="Include hidden files and directories.",
     )
-    parser.add_argument(
+    scan_group.add_argument(
         "--report-nonascii",
         action="store_true",
         help="Report non-ASCII characters as warnings.",
     )
-    parser.add_argument(
+    scan_group.add_argument(
         "--fail-on-nonascii",
         action="store_true",
-        help="Report non-ASCII characters as errors.",
+        help="Treat non-ASCII characters as errors.",
     )
-    parser.add_argument(
+    scan_group.add_argument(
+        "--report-controls",
+        action="store_true",
+        help="Report ASCII control characters as warnings.",
+    )
+    scan_group.add_argument(
+        "--fail-on-controls",
+        action="store_true",
+        help="Treat ASCII control characters as errors.",
+    )
+    scan_group.add_argument(
         "--check-trailing",
         action="store_true",
         help="Check for trailing whitespace.",
     )
-    parser.add_argument(
-        "--strip-trailing",
-        action="store_true",
-        help="Strip trailing whitespace in place before scanning.",
-    )
-    parser.add_argument(
+    scan_group.add_argument(
         "--check-line-endings",
         action="store_true",
         help="Check for CRLF line endings.",
     )
-    parser.add_argument(
-        "--fix-line-endings",
-        choices=["lf", "crlf"],
-        default=None,
-        help="Normalize line endings before scanning.",
-    )
-    parser.add_argument(
+    scan_group.add_argument(
         "--max-nonascii",
         type=int,
         default=50,
         help="Maximum unique non-ASCII characters to list per line.",
     )
-    parser.add_argument(
+    scan_group.add_argument(
+        "--max-controls",
+        type=int,
+        default=50,
+        help="Maximum unique control characters to list per line.",
+    )
+
+    fix_group = parser.add_argument_group("character auto-fixes")
+    fix_group.add_argument(
+        "--strip-trailing",
+        action="store_true",
+        help="Strip trailing whitespace in place before scanning.",
+    )
+    fix_group.add_argument(
+        "--fix-line-endings",
+        choices=["lf", "crlf"],
+        default=None,
+        help="Normalize line endings before scanning.",
+    )
+    fix_group.add_argument(
+        "--remove-control-chars",
+        action="store_true",
+        help=(
+            "Remove ASCII control characters in place before scanning "
+            "(except tab, newline, and carriage return)."
+        ),
+    )
+
+    report_group = parser.add_argument_group("character reporting")
+    report_group.add_argument(
         "--warnings-as-errors",
         action="store_true",
         help="Promote warnings to errors for exit status purposes.",
     )
-    parser.add_argument(
+    report_group.add_argument(
         "--no-line-context",
         action="store_true",
         help="Do not print offending line text in the report.",
     )
-    parser.add_argument(
+    report_group.add_argument(
         "--summary-only",
         action="store_true",
         help="Print only the summary.",
@@ -311,7 +348,10 @@ def add_outline_parser(subparsers, *, func) -> argparse.ArgumentParser:
 
 
 def add_chars_parser(subparsers, *, func) -> argparse.ArgumentParser:
-    parser = subparsers.add_parser("chars", help="Run character/content checks on documentation files.")
+    parser = subparsers.add_parser(
+        "chars",
+        help="Run character/content checks on documentation files.",
+    )
     add_root_arg(parser)
     add_exts_arg(
         parser,
