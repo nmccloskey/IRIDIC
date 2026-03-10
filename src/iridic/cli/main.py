@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 from typing import Optional, Sequence
 
-from .cli_args import (
+from .args import (
     add_chars_parser,
     add_index_parser,
     add_outline_parser,
@@ -13,14 +13,14 @@ from .cli_args import (
     add_search_parser,
     add_tree_parser,
 )
-from .manual_chars import check_manual_chars, normalize_exts as normalize_char_exts
-from .manual_index import build_manual_index, render_generated_tree_text, search_manual
-from .manual_outline import (
+from ..manual_chars import check_manual_chars, normalize_exts as normalize_char_exts
+from ..manual_index import build_manual_index, render_generated_tree_text, search_manual
+from ..manual_outline import (
     build_manual_outline,
     ensure_manual_outline,
     normalize_exts as normalize_outline_exts,
 )
-from .manual_pdf import build_manual_pdf, normalize_exts as normalize_pdf_exts
+from ..manual_pdf import build_manual_pdf, normalize_exts as normalize_pdf_exts
 
 
 def _resolve_path(pathlike: str | Path) -> Path:
