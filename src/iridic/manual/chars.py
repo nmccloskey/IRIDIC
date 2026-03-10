@@ -413,6 +413,7 @@ def run_manual_chars(
     max_controls: int = 50,
     warnings_as_errors: bool = False,
     show_lines: bool = True,
+    summary_only: bool = False,
 ) -> int:
     result = check_manual_chars(
         root,
@@ -432,7 +433,13 @@ def run_manual_chars(
         warnings_as_errors=warnings_as_errors,
     )
 
-    for line in result.report_lines(show_lines=show_lines):
+    lines = (
+        result.summary_lines()
+        if summary_only
+        else result.report_lines(show_lines=show_lines)
+    )
+
+    for line in lines:
         print(line)
 
     return 0 if result.ok else 1
