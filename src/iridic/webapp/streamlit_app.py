@@ -8,7 +8,7 @@ import random, numpy as np
 from datetime import datetime
 
 from iridic import __version__
-from iridic import render_manual_ui  
+from iridic.webapp.manual_viewer import render_manual_ui  
 
 start_time = datetime.now()
 
