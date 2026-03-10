@@ -20,8 +20,6 @@ src/rascal.egg-info/
 *.xlsx
 *.cha
 
-google_creds.json
-
 # Jupyter notebooks checkpoints
 .ipynb_checkpoints/
 
@@ -44,3 +42,10 @@ htmlcov/
 .vscode/
 .idea/
 *.swp
+
+# Manuals
+*.pdf
+docs/*.pdf
+
+# Google credits
+google_creds.json

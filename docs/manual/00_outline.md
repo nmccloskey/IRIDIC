@@ -18,10 +18,20 @@
 │   ├── 02_06_pypi_updates.md
 │   ├── 02_07_readmes.md
 │   └── 02_08_repo_structure.md
-└── 03_protocols/
-    ├── 03_01_manual_export.md
-    ├── 03_02_rename_repo.md
-    └── 03_03_rename_conda_env.md
+├── 03_protocols/
+│   ├── 03_01_manual_export.md
+│   ├── 03_02_rename_repo.md
+│   └── 03_03_rename_conda_env.md
+└── 04_modules/
+    ├── 04_00_modules_overview.md
+    ├── 04_01_manual_pdf_yaml.md
+    ├── 04_02_manual_index.md
+    ├── 04_03_manual_outline.md
+    ├── 04_04_manual_chars.md
+    ├── 04_05_manual_pdf.md
+    ├── 04_06_manual_viewer.md
+    ├── 04_07_cli_reference.md
+    └── 04_08_cli_quick_recipes.md
 ```
 
 ## Outline (Links)
@@ -43,6 +53,17 @@
 - [03_01_manual_export.md — Manual Export Protocol](03_protocols/03_01_manual_export.md)
 - [03_02_rename_repo.md — Rename a GitHub Repo (and keep VS Code + remotes + PyPI happy)](03_protocols/03_02_rename_repo.md)
 - [03_03_rename_conda_env.md — Rename a Conda Environment (Safely and Cleanly)](03_protocols/03_03_rename_conda_env.md)
+
+### 04_modules/
+- [04_00_modules_overview.md — Manual Modules Overview](04_modules/04_00_modules_overview.md)
+- [04_01_manual_pdf_yaml.md — `manual_pdf.yaml` Configuration](04_modules/04_01_manual_pdf_yaml.md)
+- [04_02_manual_index.md — manual_index Module](04_modules/04_02_manual_index.md)
+- [04_03_manual_outline.md — manual_outline Module](04_modules/04_03_manual_outline.md)
+- [04_04_manual_chars.md — manual_chars Module](04_modules/04_04_manual_chars.md)
+- [04_05_manual_pdf.md — manual_pdf Module](04_modules/04_05_manual_pdf.md)
+- [04_06_manual_viewer.md — manual_viewer Module](04_modules/04_06_manual_viewer.md)
+- [04_07_cli_reference.md — IRIDIC CLI Command Reference](04_modules/04_07_cli_reference.md)
+- [04_08_cli_quick_recipes.md — Common CLI Workflows (Quick Start)](04_modules/04_08_cli_quick_recipes.md)
 
 ---
 
