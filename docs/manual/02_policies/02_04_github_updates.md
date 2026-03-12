@@ -125,14 +125,16 @@ Format:
 
 Common types:
 
--   `feat:` new feature
 -   `fix:` bug fix
+-   `feat:` new feature (to API or UI)
 -   `refactor:` code restructuring without behavioral change
+-   `perf`: performance-specific subtype of `refactor`
+-   `style`: function-irrelevant code style (formatting, whitespace, etc.)
 -   `docs:` documentation changes
 -   `test:` adding or updating tests
 -   `chore:` maintenance tasks
 -   `build:` packaging or dependency updates
--   `perf:` performance improvement
+-   `ops:` operational components (infrastructure, CI/CI, backups, etc.)
 
 Examples:
 
@@ -230,9 +232,7 @@ Potential additions as projects scale:
 
 ## 9. Philosophical Principle
 
-The Git history is not merely archival---it is part of scholarly infrastructure.
-
-A clean history:
+Not merely archival, a clean Git history:
 
 -   Protects reproducibility
 -   Enables refactoring
@@ -241,3 +241,9 @@ A clean history:
 -   Reduces cognitive load for future self
 
 The aim is not punctilious formality but durable clarity.
+
+------------------------------------------------------------------------
+
+## 10. References
+
+https://gist.github.com/qoomon/5dfcdf8eec66a051ecd85625518cfd13
