@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import re
 from typing import Dict, Literal, Optional, Union
 
 import streamlit as st
@@ -17,6 +18,7 @@ from ..manual.outline import ensure_manual_outline
 
 
 OutlineMode = Literal["never", "if_missing", "always"]
+_SECTION_LABEL_RE = re.compile(r"^(?P<num>\d+(?:[_-]\d+)*)(?:[_-].*)?$")
 
 
 @st.cache_data(show_spinner=False)
@@ -46,11 +48,26 @@ def _validate_outline_mode(mode: str) -> OutlineMode:
     return mode  # type: ignore[return-value]
 
 
+def _format_section_label(mf: ManualFile | None, fallback_name: str) -> str:
+    name = mf.rel_path.name if mf else fallback_name
+    stem = Path(name).stem
+    title = mf.title if mf else fallback_name
+
+    match = _SECTION_LABEL_RE.match(stem)
+    if not match:
+        return title
+
+    section_num = ".".join(
+        str(int(part)) for part in re.split(r"[_-]", match.group("num"))
+    )
+    return f"{section_num}: {title}"
+
+
 def render_manual_ui(
     *,
     repo_root: Union[str, Path],
     manual_rel_dir: Union[str, Path] = "manual",
-    expander_label: str = "📘 Show / Hide Instruction Manual",
+    expander_label: str = "Show / Hide Instruction Manual",
     ensure_outline: OutlineMode = "if_missing",
     outline_title: str = "Instruction Manual",
     outline_version: str = "0.0.0",
@@ -130,17 +147,17 @@ def render_manual_ui(
             st.session_state.manual_search = st.text_input(
                 "Search",
                 value=st.session_state.manual_search,
-                placeholder="Search titles + content…",
+                placeholder="Search titles + content...",
             )
 
         st.caption("Tip: Click a file once to show it below. Click it again to hide it.")
 
-        with st.expander("🗂 Manual Map (Tree)", expanded=False):
+        with st.expander("Manual Map (Tree)", expanded=False):
             st.code(render_generated_tree_text(tree), language="text")
 
         q = st.session_state.manual_search.strip()
         if q:
-            with st.expander("🔎 Search results", expanded=True):
+            with st.expander("Search results", expanded=True):
                 results = search_manual(flat, q, limit=25)
                 if not results:
                     st.caption("No matches.")
@@ -148,18 +165,21 @@ def render_manual_ui(
                     for rel_str, _score in results:
                         mf = flat[rel_str]
                         if st.button(
-                            f"📄 {mf.rel_path.as_posix()} — {mf.title}",
+                            _format_section_label(mf, mf.rel_path.name),
                             key=f"sr_{rel_str}",
                         ):
                             _toggle_selected(rel_str)
 
-        st.markdown("### 📚 Manual Sections")
+        st.markdown("### Manual Sections")
 
         root_keys = sorted(tree.keys(), key=numeric_sort_key)
         for name in root_keys:
             node = tree[name]
             if isinstance(node, dict):
-                with st.expander(f"📁 {name}", expanded=st.session_state.manual_expand_all):
+                with st.expander(
+                    f"Folder: {name}",
+                    expanded=st.session_state.manual_expand_all,
+                ):
                     _render_folder_accordion(
                         node=node,
                         rel_prefix=Path(name),
@@ -170,12 +190,10 @@ def render_manual_ui(
                 rel_str = Path(name).as_posix()
                 mf = flat.get(rel_str)
 
-                label = f"📄 {name}"
-                if mf and mf.title and mf.title != name:
-                    label = f"📄 {name} — {mf.title}"
+                label = _format_section_label(mf, name)
 
                 if st.session_state.manual_selected == rel_str:
-                    label = f"▶ {label}"
+                    label = f"> {label}"
 
                 if st.button(label, key=f"root_open_{rel_str}"):
                     _toggle_selected(rel_str)
@@ -192,7 +210,6 @@ def render_manual_ui(
     mf = flat[rel_selected]
     crumbs = ["Manual"] + list(mf.rel_path.parts)
     st.caption(" / ".join(crumbs))
-    st.markdown(f"## {mf.title}")
     st.markdown(mf.text)
 
 
@@ -208,7 +225,7 @@ def _render_folder_accordion(
         child = node[name]
 
         if isinstance(child, dict):
-            with st.expander(f"📁 {name}", expanded=expand_all):
+            with st.expander(f"Folder: {name}", expanded=expand_all):
                 _render_folder_accordion(
                     node=child,
                     rel_prefix=rel_prefix / name,
@@ -219,12 +236,10 @@ def _render_folder_accordion(
             rel_str = (rel_prefix / name).as_posix()
             mf = flat.get(rel_str)
 
-            label = f"📄 {name}"
-            if mf and mf.title and mf.title != name:
-                label = f"📄 {name} — {mf.title}"
+            label = _format_section_label(mf, name)
 
             if st.session_state.get("manual_selected") == rel_str:
-                label = f"▶ {label}"
+                label = f"> {label}"
 
             if st.button(label, key=f"open_{rel_str}"):
                 _toggle_selected(rel_str)
