@@ -162,7 +162,7 @@ def render_tree(
     max_depth: Optional[int] = None,
     depth: int = 0,
     links: bool = False,
-    show_titles: bool = False,
+    show_titles: bool = True,
     indent_mid: str = "│   ",
     indent_last: str = "    ",
 ) -> List[str]:
