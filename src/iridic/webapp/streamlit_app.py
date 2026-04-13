@@ -62,6 +62,7 @@ def main() -> None:
         repo_root=repo_root,
         manual_rel_dir="docs/iridic_manual",
         expander_label="📘 Show / Hide IRIDIC Manual Menu",
+        ui_key="iridic_manual",
     )
 
     st.subheader(
@@ -71,6 +72,7 @@ def main() -> None:
         repo_root=repo_root,
         manual_rel_dir="docs/tools_manual",
         expander_label="📘 Show / Hide IRIDIC Tools Manual Menu",
+        ui_key="tools_manual",
     )
 
     # Placeholder body content
