@@ -54,10 +54,23 @@ def main() -> None:
     st.caption("(a personal meta-repository)")
     st.caption(f"Version: {__version__}")
 
+
+    st.subheader(
+        "Policy & Protocol Manual"
+    )
     render_manual_ui(
         repo_root=repo_root,
-        manual_rel_dir="docs/manual",
+        manual_rel_dir="docs/iridic_manual",
         expander_label="📘 Show / Hide IRIDIC Manual Menu",
+    )
+
+    st.subheader(
+        "Modules Manual"
+    )
+    render_manual_ui(
+        repo_root=repo_root,
+        manual_rel_dir="docs/tools_manual",
+        expander_label="📘 Show / Hide IRIDIC Tools Manual Menu",
     )
 
     # Placeholder body content
