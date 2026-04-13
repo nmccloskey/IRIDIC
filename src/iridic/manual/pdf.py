@@ -207,8 +207,8 @@ def run_pandoc(
     stderr = proc.stderr.decode("utf-8", errors="replace")
 
     if proc.returncode != 0:
-        stderr = proc.stderr.strip()
-        stdout = proc.stdout.strip()
+        stderr = stderr.strip()
+        stdout = stdout.strip()
         details = "\n".join(part for part in [stdout, stderr] if part)
         raise RuntimeError(
             f"Pandoc compilation failed with exit code {proc.returncode}.\n{details}"

@@ -27,12 +27,19 @@ def zip_folder(folder_path: Path) -> BytesIO:
 
 def get_repo_root() -> Path:
     """
-    Return the repository root.
+    Return the repository root containing the external docs/ manuals.
 
-    Expected file location:
-        repo_root/src/iridic/webapp/streamlit_app.py
+    The hosted app is launched from the repository root, while local imports may
+    resolve this module from src/iridic/webapp. Check both locations so docs/
+    does not need to be bundled into the installed package.
     """
-    return Path(__file__).resolve().parents[3]
+    module_root = Path(__file__).resolve().parents[3]
+    for candidate in (Path.cwd(), module_root):
+        has_docs = (candidate / "docs").is_dir()
+        has_launcher = (candidate / "streamlit_app.py").exists()
+        if has_docs and has_launcher:
+            return candidate.resolve()
+    return module_root
 
 
 def main() -> None:
@@ -61,6 +68,7 @@ def main() -> None:
     render_manual_ui(
         repo_root=repo_root,
         manual_rel_dir="docs/iridic_manual",
+        pdf_yaml_rel_path="docs/iridic_manual/iridic_manual_pdf.yaml",
         expander_label="📘 Show / Hide IRIDIC Manual Menu",
         ui_key="iridic_manual",
     )
@@ -71,6 +79,7 @@ def main() -> None:
     render_manual_ui(
         repo_root=repo_root,
         manual_rel_dir="docs/tools_manual",
+        pdf_yaml_rel_path="docs/tools_manual/tools_manual_pdf.yaml",
         expander_label="📘 Show / Hide IRIDIC Tools Manual Menu",
         ui_key="tools_manual",
     )

@@ -13,8 +13,19 @@ The viewer allows users to:
 - search manual content and titles
 - expand and collapse manual directories
 - display documentation inline within the application
+- download the displayed manual as PDF or DOCX when optional export backends are available
 
 This functionality makes it possible to integrate **fully navigable instruction manuals directly into Streamlit-based tools**.
+
+## Download Backends
+
+Manual downloads are optional runtime features. Pandoc is detected from `PATH`
+and remains an external system dependency rather than a Python package
+dependency; local CLI users install Pandoc separately, while hosted Streamlit
+deployments can provide it through root-level `packages.txt`. If Pandoc is
+absent or PDF compilation fails, the app falls back to WeasyPrint when the
+Python webapp dependencies are installed. DOCX export uses `python-docx` and
+can remain available even when no PDF backend succeeds.
 
 ---
 

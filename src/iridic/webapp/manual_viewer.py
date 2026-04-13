@@ -15,6 +15,12 @@ from ..manual.index import (
     search_manual,
 )
 from ..manual.outline import ensure_manual_outline
+from .manual_export import (
+    build_manual_markdown_from_index,
+    detect_manual_export_backends,
+    export_manual_docx,
+    export_manual_pdf,
+)
 
 OutlineMode = Literal["never", "if_missing", "always"]
 _SECTION_LABEL_RE = re.compile(r"^(?P<num>\d+(?:[_-]\d+)*)(?:[_-].*)?$")
@@ -25,17 +31,26 @@ def build_manual_index_cached(manual_dir: str) -> tuple[TreeNode, Dict[str, Manu
     return build_manual_index(manual_dir)
 
 
-def _toggle_selected(rel_str: str) -> None:
-    """
-    Click once -> open and show indicator.
-    Click again -> close and remove indicator.
-    """
-    if st.session_state.get("manual_selected") == rel_str:
-        st.session_state.manual_selected = None
-    else:
-        st.session_state.manual_selected = rel_str
+@st.cache_data(show_spinner=False)
+def export_manual_pdf_cached(
+    markdown_text: str,
+    title: str,
+    yaml_path: str,
+    base_url: str,
+    backend_key: str,
+) -> tuple[bytes, str]:
+    _ = backend_key
+    return export_manual_pdf(
+        markdown_text,
+        title=title,
+        yaml_path=yaml_path or None,
+        base_url=base_url or None,
+    )
 
-    st.rerun()
+
+@st.cache_data(show_spinner=False)
+def export_manual_docx_cached(markdown_text: str, title: str) -> bytes:
+    return export_manual_docx(markdown_text, title=title)
 
 
 def _validate_outline_mode(mode: str) -> OutlineMode:
@@ -174,6 +189,169 @@ def _render_manual_controls(
     st.caption("Tip: Click a file once to show it below. Click it again to hide it.")
 
 
+def _render_manual_downloads(
+    *,
+    ns: str,
+    repo_root: Path,
+    manual_root: Path,
+    flat: Dict[str, ManualFile],
+    pdf_yaml_rel_path: Union[str, Path, None],
+    fallback_title: str,
+) -> None:
+    """
+    Render optional manual export download controls.
+    """
+    backends = detect_manual_export_backends()
+    if not any(backends.values()):
+        st.caption("Manual downloads are unavailable in this runtime.")
+        return
+
+    yaml_path = _resolve_pdf_yaml_path(repo_root, manual_root, pdf_yaml_rel_path)
+    title = _manual_export_title(manual_root, yaml_path, fallback_title)
+    markdown_text, _section_meta = build_manual_markdown_from_index(flat)
+    c1, c2 = st.columns(2)
+
+    with c1:
+        if backends["pandoc_pdf"] or backends["weasyprint_pdf"]:
+            _render_pdf_download_button(
+                ns=ns,
+                manual_root=manual_root,
+                markdown_text=markdown_text,
+                title=title,
+                yaml_path=yaml_path,
+                backends=backends,
+            )
+        else:
+            st.caption("PDF export unavailable.")
+
+    with c2:
+        if backends["docx"]:
+            _render_docx_download_button(
+                ns=ns,
+                manual_root=manual_root,
+                markdown_text=markdown_text,
+                title=title,
+            )
+        else:
+            st.caption("DOCX export unavailable.")
+
+
+def _render_pdf_download_button(
+    *,
+    ns: str,
+    manual_root: Path,
+    markdown_text: str,
+    title: str,
+    yaml_path: Path | None,
+    backends: dict[str, bool],
+) -> None:
+    try:
+        with st.spinner("Preparing PDF export..."):
+            pdf_bytes, backend = export_manual_pdf_cached(
+                markdown_text,
+                title,
+                str(yaml_path) if yaml_path else "",
+                str(manual_root),
+                _backend_cache_key(backends),
+            )
+    except Exception as exc:
+        st.warning(f"PDF export failed: {exc}")
+        return
+
+    st.download_button(
+        "Download manual (PDF)",
+        data=pdf_bytes,
+        file_name=_manual_export_filename(manual_root, ".pdf"),
+        mime="application/pdf",
+        key=f"{ns}_download_pdf",
+    )
+    st.caption(f"PDF export backend: {backend}")
+
+
+def _render_docx_download_button(
+    *,
+    ns: str,
+    manual_root: Path,
+    markdown_text: str,
+    title: str,
+) -> None:
+    try:
+        with st.spinner("Preparing DOCX export..."):
+            docx_bytes = export_manual_docx_cached(markdown_text, title)
+    except Exception as exc:
+        st.warning(f"DOCX export failed: {exc}")
+        return
+
+    st.download_button(
+        "Download manual (DOCX)",
+        data=docx_bytes,
+        file_name=_manual_export_filename(manual_root, ".docx"),
+        mime=(
+            "application/vnd.openxmlformats-officedocument."
+            "wordprocessingml.document"
+        ),
+        key=f"{ns}_download_docx",
+    )
+
+
+def _resolve_pdf_yaml_path(
+    repo_root: Path,
+    manual_root: Path,
+    pdf_yaml_rel_path: Union[str, Path, None],
+) -> Path | None:
+    if pdf_yaml_rel_path is not None:
+        candidate = Path(pdf_yaml_rel_path)
+        candidates = [candidate] if candidate.is_absolute() else [
+            repo_root / candidate,
+            manual_root / candidate,
+        ]
+        return next((path.resolve() for path in candidates if path.exists()), None)
+
+    candidates = [
+        manual_root / "manual_pdf.yaml",
+        manual_root / f"{manual_root.name}_pdf.yaml",
+    ]
+    return next((path.resolve() for path in candidates if path.exists()), None)
+
+
+def _manual_export_title(
+    manual_root: Path,
+    yaml_path: Path | None,
+    fallback_title: str,
+) -> str:
+    yaml_title = _read_yaml_title(yaml_path)
+    if yaml_title:
+        return yaml_title
+    if fallback_title and fallback_title != "Instruction Manual":
+        return fallback_title
+    return manual_root.name.replace("_", " ").title()
+
+
+def _read_yaml_title(yaml_path: Path | None) -> str | None:
+    if yaml_path is None:
+        return None
+    try:
+        import yaml
+
+        data = yaml.safe_load(yaml_path.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+    if isinstance(data, dict) and isinstance(data.get("title"), str):
+        return data["title"].strip() or None
+    return None
+
+
+def _manual_export_filename(manual_root: Path, suffix: str) -> str:
+    safe_name = re.sub(r"[^a-zA-Z0-9_-]+", "_", manual_root.name).strip("_")
+    return f"{safe_name or 'manual'}{suffix}"
+
+
+def _backend_cache_key(backends: dict[str, bool]) -> str:
+    return ",".join(
+        f"{name}={int(enabled)}" for name, enabled in sorted(backends.items())
+    )
+
+
 def _render_manual_search(
     *,
     ns: str,
@@ -273,12 +451,14 @@ def render_manual_ui(
     outline_version: str = "0.0.0",
     outline_max_depth: int | None = None,
     ui_key: str | None = None,
+    pdf_yaml_rel_path: Union[str, Path, None] = None,
 ) -> None:
     """
     Render a namespaced Streamlit manual viewer.
 
     This version supports multiple manual viewers on the same page by
-    namespacing widget keys and session-state fields.
+    namespacing widget keys and session-state fields. pdf_yaml_rel_path may
+    point to a Pandoc metadata YAML file relative to repo_root or manual_root.
     """
     ns = _manual_ui_namespace(manual_rel_dir, ui_key=ui_key)
     state_keys = _manual_state_keys(ns)
@@ -302,6 +482,14 @@ def render_manual_ui(
 
     with st.expander(expander_label, expanded=False):
         _render_manual_controls(ns=ns, state_keys=state_keys)
+        _render_manual_downloads(
+            ns=ns,
+            repo_root=Path(repo_root).resolve(),
+            manual_root=manual_root,
+            flat=flat,
+            pdf_yaml_rel_path=pdf_yaml_rel_path,
+            fallback_title=outline_title,
+        )
 
         with st.expander("Manual Map (Tree)", expanded=False):
             st.code(render_generated_tree_text(tree), language="text")
