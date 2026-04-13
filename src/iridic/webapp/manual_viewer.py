@@ -119,6 +119,7 @@ def _toggle_selected(selected_key: str, rel_str: str) -> None:
     """
     current = st.session_state.get(selected_key)
     st.session_state[selected_key] = None if current == rel_str else rel_str
+    st.rerun()
 
 
 def _prepare_manual_root(

@@ -13,12 +13,12 @@ authors = [{ name = "Nick McCloskey" }]
 
 dependencies = [
     "PyYAML",
+    "python-docx",
 ]
 
 [project.optional-dependencies]
 webapp = [
     "markdown",
-    "python-docx",
     "streamlit",
     "weasyprint",
 ]
