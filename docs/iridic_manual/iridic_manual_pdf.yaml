@@ -5,7 +5,7 @@
 title: "IRIDIC Instruction Manual"
 subtitle: "Idiosyncratic Repository of Initialization & Development Itineraries for Codebases"
 author: "Nick McCloskey"
-date: "Version 0.1.0"
+date: "Version 0.1.1"
 
 geometry: margin=3cm
 fontsize: 11pt
