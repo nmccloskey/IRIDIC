@@ -30,7 +30,7 @@ class ManualSectionMeta:
     filename: str
 
 
-def detect_manual_export_backends() -> dict[str, bool]:
+def detect_manual_export_backends(*, check_pdf: bool = True) -> dict[str, bool]:
     """
     Return export backends currently available at runtime.
 
@@ -40,9 +40,8 @@ def detect_manual_export_backends() -> dict[str, bool]:
     is absent, PDF export can fall back to WeasyPrint. DOCX remains independent.
     """
     return {
-        "pandoc_pdf": shutil.which("pandoc") is not None,
-        "weasyprint_pdf": _module_available("weasyprint")
-        and _module_available("markdown"),
+        "pandoc_pdf": check_pdf and shutil.which("pandoc") is not None,
+        "weasyprint_pdf": check_pdf and _weasyprint_pdf_available(),
         "docx": _module_available("docx"),
     }
 
@@ -241,6 +240,17 @@ def export_manual_pdf(
 
 def _module_available(name: str) -> bool:
     return find_spec(name) is not None
+
+
+def _weasyprint_pdf_available() -> bool:
+    if not _module_available("markdown") or not _module_available("weasyprint"):
+        return False
+    try:
+        import markdown  # noqa: F401
+        from weasyprint import HTML  # noqa: F401
+    except Exception:
+        return False
+    return True
 
 
 def _ordered_manual_files(flat: Mapping[str, ManualFile]) -> list[ManualFile]:

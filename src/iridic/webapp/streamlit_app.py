@@ -71,6 +71,7 @@ def main() -> None:
         pdf_yaml_rel_path="docs/iridic_manual/iridic_manual_pdf.yaml",
         expander_label="📘 Show / Hide IRIDIC Manual Menu",
         ui_key="iridic_manual",
+        enable_pdf_export=True,
     )
 
     st.subheader(
@@ -82,6 +83,7 @@ def main() -> None:
         pdf_yaml_rel_path="docs/tools_manual/tools_manual_pdf.yaml",
         expander_label="📘 Show / Hide IRIDIC Tools Manual Menu",
         ui_key="tools_manual",
+        enable_pdf_export=True,
     )
 
     # Placeholder body content

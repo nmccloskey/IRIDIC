@@ -187,8 +187,6 @@ def _render_manual_controls(
             key=f"{ns}_search_input",
         )
 
-    st.caption("Tip: Click a file once to show it below. Click it again to hide it.")
-
 
 def _render_manual_downloads(
     *,
@@ -198,23 +196,27 @@ def _render_manual_downloads(
     flat: Dict[str, ManualFile],
     pdf_yaml_rel_path: Union[str, Path, None],
     fallback_title: str,
+    enable_pdf_export: bool = False,
+    enable_docx_export: bool = True,
 ) -> None:
-    """
-    Render optional manual export download controls.
-    """
-    backends = detect_manual_export_backends()
-    if not any(backends.values()):
-        st.caption("Manual downloads are unavailable in this runtime.")
+    """Render manual export controls for available, enabled formats only."""
+    backends = detect_manual_export_backends(check_pdf=enable_pdf_export)
+
+    pdf_available = enable_pdf_export and (
+        backends["pandoc_pdf"] or backends["weasyprint_pdf"]
+    )
+    docx_available = enable_docx_export and backends["docx"]
+    if not pdf_available and not docx_available:
         return
 
     yaml_path = _resolve_pdf_yaml_path(repo_root, manual_root, pdf_yaml_rel_path)
     title = _manual_export_title(manual_root, yaml_path, fallback_title)
     markdown_text, _section_meta = build_manual_markdown_from_index(flat)
-    c1, c2 = st.columns(2)
 
-    with c1:
-        if backends["pandoc_pdf"] or backends["weasyprint_pdf"]:
-            _render_pdf_download_button(
+    renderers = []
+    if pdf_available:
+        renderers.append(
+            lambda: _render_pdf_download_button(
                 ns=ns,
                 manual_root=manual_root,
                 markdown_text=markdown_text,
@@ -222,19 +224,21 @@ def _render_manual_downloads(
                 yaml_path=yaml_path,
                 backends=backends,
             )
-        else:
-            st.caption("PDF export unavailable.")
-
-    with c2:
-        if backends["docx"]:
-            _render_docx_download_button(
+        )
+    if docx_available:
+        renderers.append(
+            lambda: _render_docx_download_button(
                 ns=ns,
                 manual_root=manual_root,
                 markdown_text=markdown_text,
                 title=title,
             )
-        else:
-            st.caption("DOCX export unavailable.")
+        )
+
+    columns = st.columns(len(renderers)) if len(renderers) > 1 else [st.container()]
+    for column, render in zip(columns, renderers):
+        with column:
+            render()
 
 
 def _render_pdf_download_button(
@@ -390,6 +394,8 @@ def _render_manual_sections(
     Render the manual section browser.
     """
     st.markdown("### Manual Sections")
+    st.caption("Tip: Click a file once to show it below. Click it again to hide it.")
+
     expand_all = st.session_state[state_keys["expand_all"]]
     selected = st.session_state[state_keys["selected"]]
 
@@ -453,6 +459,8 @@ def render_manual_ui(
     outline_max_depth: int | None = None,
     ui_key: str | None = None,
     pdf_yaml_rel_path: Union[str, Path, None] = None,
+    enable_pdf_export: bool = False,
+    enable_docx_export: bool = True,
 ) -> None:
     """
     Render a namespaced Streamlit manual viewer.
@@ -460,6 +468,7 @@ def render_manual_ui(
     This version supports multiple manual viewers on the same page by
     namespacing widget keys and session-state fields. pdf_yaml_rel_path may
     point to a Pandoc metadata YAML file relative to repo_root or manual_root.
+    PDF export is opt-in so downstream web apps can stay lightweight.
     """
     ns = _manual_ui_namespace(manual_rel_dir, ui_key=ui_key)
     state_keys = _manual_state_keys(ns)
@@ -490,6 +499,8 @@ def render_manual_ui(
             flat=flat,
             pdf_yaml_rel_path=pdf_yaml_rel_path,
             fallback_title=outline_title,
+            enable_pdf_export=enable_pdf_export,
+            enable_docx_export=enable_docx_export,
         )
 
         with st.expander("Manual Map (Tree)", expanded=False):
