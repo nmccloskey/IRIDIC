@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "iridic"
-version = "0.1.0"
+version = "0.1.1"
 description = "Utilities for building, validating, and rendering project manuals"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -12,15 +12,24 @@ license = { text = "MIT" }
 authors = [{ name = "Nick McCloskey" }]
 
 dependencies = [
-    "PyYAML",
-    "python-docx",
+    "PyYAML>=6.0",
+    "python-docx>=1.1.0",
 ]
 
 [project.optional-dependencies]
 webapp = [
-    "markdown",
-    "streamlit",
-    "weasyprint",
+    "streamlit>=1.40",
+]
+
+pdf = [
+    "markdown>=3.6",
+    "weasyprint>=62",
+]
+
+full = [
+    "streamlit>=1.40",
+    "markdown>=3.6",
+    "weasyprint>=62",
 ]
 
 [tool.setuptools]
