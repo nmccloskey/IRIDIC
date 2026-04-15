@@ -270,7 +270,7 @@ iridic pdf manual/
 
 ## Requirements
 
-- Python 3.10+
+- Python 3.12
 - Pandoc (for PDF compilation)
 - LaTeX engine such as `xelatex` (for Pandoc PDF builds)
 
