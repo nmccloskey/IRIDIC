@@ -87,6 +87,21 @@ A **workflow** is a multi-step applied process combining multiple commands and/o
 * Demonstrate real-world usage
 * Guide users through multi-step procedures
 
+#### 1.5 Features
+
+A **feature** is an aspect or component of the program whose importance and/or scope requires featured presentation early in the manual.
+
+Objects may be features if they require abstract descriptions that span across other objects, or even if they also map directly onto a lower-level.
+
+**Examples**
+
+* DIAAD transcript tables
+* Example I/O
+
+**Purpose**
+
+* Represent high-level, cross-cutting program components that matter early within documentation
+
 ---
 
 ## 2. Views (Documentation Perspectives)
@@ -178,6 +193,8 @@ Not all objects require all views. The following matrix defines required vs opti
 | Command       | Required   | Required    | Optional         | Required             |
 | Functionality | Required   | Usually     | Usually          | Usually              |
 | Workflow      | Required   | Required    | Light/Required   | Optional             |
+
+Each feature could be described in its own self-contained markdown file, but organizing this (loosely) based on the views described above may be beneficial.
 
 ---
 
@@ -292,6 +309,15 @@ manual/
   workflows/
     minimal_pipeline.md
     full_pipeline.md
+```
+
+### 5.4 Features
+
+```text
+manual/
+  features/
+    transcript_tabularization.md
+    generated_example_io.md
 ```
 
 ---

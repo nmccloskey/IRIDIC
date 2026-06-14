@@ -80,7 +80,7 @@ The output of this step should be an inventory, not drafted documentation.
 
 ### Step 2: Object Inventory
 
-The assistant should classify documentation targets into the four IRIDIC object types.
+The assistant should classify documentation targets into the five IRIDIC object types.
 
 | Object Type | Identification Rule |
 |---|---|
@@ -88,6 +88,7 @@ The assistant should classify documentation targets into the four IRIDIC object 
 | Command | A discrete CLI command or webapp operation |
 | Functionality | A cross-cutting behavior used by multiple modules or commands |
 | Workflow | A multi-step applied process combining several operations |
+| Feature | A prominent, cross-cutting component not best (only) classified as any of the above |
 
 The assistant should produce a proposed object inventory before drafting files.
 
@@ -106,6 +107,8 @@ For each object, assign the appropriate documentation views.
 
 The assistant should not automatically create all possible files. It should only generate views that provide non-redundant value.
 
+Generally, features do not need separate views, but view structure may guide the section draft.
+
 ---
 
 ### Step 4: File Plan
@@ -116,6 +119,8 @@ Example:
 
 ```text
 manual/
+  features/
+    example_io.md
   modules/
     transcripts/
       quickstart.md
