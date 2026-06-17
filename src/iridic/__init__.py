@@ -6,7 +6,7 @@ Utilities for indexing, viewing, validating, and compiling project manuals.
 
 from importlib.metadata import PackageNotFoundError, version
 
-from .manual import (
+from psair.manual import (
     ManualFile,
     TreeNode,
     Finding,

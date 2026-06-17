@@ -8,7 +8,7 @@ from pathlib import Path
 import streamlit as st
 
 from iridic import __version__
-from iridic.webapp.manual_viewer import render_manual_ui
+from psair.webapp.manual_viewer import render_manual_ui
 
 
 def zip_folder(folder_path: Path) -> BytesIO:
