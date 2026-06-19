@@ -2,270 +2,275 @@
 
 ## 1. Purpose
 
-This policy defines standards for structuring, naming, organizing, and
-maintaining long‑form technical manuals written in Markdown within
-IRIDIC‑governed repositories.
+This document defines standards for long-form manuals in IRIDIC-governed
+repositories.
 
-It is designed to:
+The goals are:
 
--   Prevent monolithic, unwieldy manuals
--   Support modular growth over time
--   Facilitate PDF compilation (e.g., Zenodo archiving)
--   Enable web presentation (e.g., Streamlit navigation)
--   Preserve clarity, traceability, and version integrity
+- keep public documentation modular and navigable
+- make source-backed manual drafting traceable
+- support human and LLM collaboration without losing review control
+- allow manuals to grow without becoming monolithic
+- keep authored, generated, and preparatory materials distinct
 
-This document governs *structure*. Presentation protocols (PDF
-compilation, web rendering, etc.) are addressed separately.
-
-------------------------------------------------------------------------
-
-## 2. Guiding Principles
-
-### 2.1 Modular by Default
-
-Manuals exceeding \~300--400 lines should be segmented into logically
-coherent units.
-
-### 2.2 Hierarchical Clarity
-
-Directory structure should mirror conceptual structure.
-
-### 2.3 Stable Referencing
-
-File names must be predictable and ordered.
-
-### 2.4 Growth Without Rewriting
-
-Adding a new feature should require adding a new file---not
-restructuring the entire manual.
-
-### 2.5 Compilation Neutrality
-
-Manuals must remain usable: - As independent Markdown files - As a
-compiled PDF - As web-rendered documentation
+This page governs manual structure. The detailed drafting workflow,
+object inventory process, itinerary system, review process, and export
+workflow are defined in companion documents in this section.
 
 ------------------------------------------------------------------------
 
-## 3. Directory Structure Standard
+## 2. Manual Materials
 
-### 3.1 Root Structure
+IRIDIC distinguishes three kinds of manual-related material.
 
-Example for RASCAL:
+### Authored Manual
 
-    RASCAL/
-    │
-    ├── manual/
-    │   ├── 00_outline.md
-    │   ├── 01_introduction.md
-    │   ├── 02_installation.md
-    │   ├── 03_workflow/
-    │   │   ├── 03_01_overview.md
-    │   │   ├── 03_02_transcript_tables.md
-    │   │   ├── 03_03_cu_coding.md
-    │   │   └── 03_04_blinding.md
-    │   ├── 04_outputs.md
-    │   ├── 05_database_logic.md
-    │   ├── 06_examples.md
-    │   ├── 99_appendix.md
-    │   └── manual_pdf.yaml
-    │
-    └── README.md
+The authored manual is the public or near-public documentation tree.
+It contains pages written for users, researchers, developers, or
+maintainers.
+
+Typical root:
+
+    docs/manual/
+
+### Generated Manual Views
+
+Generated manual views are produced mechanically from code, tests,
+example manifests, or other structured sources.
+
+They may be composed with authored pages, but should not be hand-edited
+unless the generator itself is being revised.
+
+Example:
+
+    src/package_name/examples/assets/rendered_docs/example_io/
+
+### Manual Prep Workspace
+
+The manual prep workspace is an internal drafting area used for
+inventories, notes, file plans, itineraries, and review sweeps.
+
+Typical root:
+
+    .codex-local/manual_prep/
+
+This area may be untracked. Its value is traceability: it allows the
+human maintainer and an LLM assistant to work in Markdown files rather
+than relying only on chat history.
 
 ------------------------------------------------------------------------
 
-## 4. File Naming Conventions
+## 3. Authored Manual Root
 
-### 4.1 Numeric Prefixing (Required)
+The default authored manual root is:
 
-Format:
+    docs/manual/
+
+A mature manual may use a numbered section layout:
+
+    docs/manual/
+      00_outline.md
+      01_overview/
+      02_operation/
+      03_features/
+      04_modules/
+      05_functionalities/
+      06_workflows/
+      99_references.md
+
+Not every repository needs every section. Small projects may begin with
+only overview, operation, and selected module or command pages.
+
+------------------------------------------------------------------------
+
+## 4. Recommended Section Roles
+
+### `00_outline.md`
+
+The outline is the navigation map. It may be hand-authored or generated
+from the manual tree.
+
+It should reflect the current manual structure and be refreshed after
+stable tree changes.
+
+### `01_overview/`
+
+Overview pages orient readers to the project, purpose, scope, audiences,
+major functional areas, and manual organization.
+
+Overview pages should not become command reference pages.
+
+### `02_operation/`
+
+Operation pages explain installation, command-line use, web-app use,
+configuration, testing, and other general operating procedures.
+
+These pages should cover repository-wide behavior that users need before
+entering object-specific documentation.
+
+### `03_features/`
+
+Feature pages present especially important or cross-cutting concepts
+early in the manual.
+
+Features may overlap with modules, commands, functionalities, or
+workflows. They receive feature status because they need prominent,
+integrated explanation before lower-level details.
+
+### `04_modules/`
+
+Module pages describe cohesive operational domains.
+
+Modules often contain command subdirectories.
+
+### `05_functionalities/`
+
+Functionality pages describe shared behavior that crosses multiple
+modules or commands.
+
+They prevent repeated explanations across command pages.
+
+### `06_workflows/`
+
+Workflow pages describe applied, multi-step procedures.
+
+They should generally be drafted after relevant feature, module, command,
+and functionality pages are stable enough to link outward.
+
+### `99_references.md`
+
+References collect citations, acknowledgments, and bibliographic support
+for research-context pages.
+
+------------------------------------------------------------------------
+
+## 5. File Naming
+
+Use numeric prefixes for stable ordering.
+
+Top-level files and directories:
 
     NN_title.md
+    NN_section_name/
 
-or nested:
+Nested object and view files:
 
-    NN_MM_title.md
+    04_modules/
+      01_transcripts/
+        01_quickstart.md
+        03_research_context.md
+        04_implementation_notes.md
+        05_commands/
+          01_tabularize/
+            01_quickstart.md
+            02_usage_guide.md
+            04_implementation_notes.md
 
-Where:
+Guidelines:
 
--   `NN` = primary section (00--99)
--   `MM` = subsection (01--99)
--   Lowercase
--   Underscores instead of spaces
--   No special characters
-
-### 4.2 Reserved Numbers
-
-|  Prefix  | Purpose
-|  ------- | ------------------------
-|  00      | Outline / master index
-|  01--89  | Core manual content
-|  90--98  | Advanced / optional
-|  99      | Appendix
-
-------------------------------------------------------------------------
-
-## 5. Outline File (00_outline.md)
-
-The outline file should include:
-
--   Hierarchical list of sections
--   Brief description of each
--   Version number
--   Last updated date
-
-It functions as:
-
--   Human-readable map
--   Anchor for PDF compilation
--   Web navigation backbone
+- use lowercase filenames
+- use underscores instead of spaces
+- avoid special characters
+- keep view numbers stable even when a view is absent
+- avoid renumbering stable pages unless the manual structure truly
+  changes
 
 ------------------------------------------------------------------------
 
-## 6. Section Design Rules
+## 6. Manual Page Size
 
-Each section file should:
+Manual pages should be coherent and reasonably bounded.
 
--   Be internally coherent
--   Avoid duplicating other sections
--   Use consistent heading depth
--   Remain \< 400--500 lines when possible
+As a rule of thumb:
 
-If a section exceeds \~600 lines, it should be subdivided.
+- split a page once it becomes hard to review in one pass
+- split when two audiences are being served by unrelated material
+- split when one part changes frequently and another should remain stable
+- avoid splitting solely for symmetry
 
-------------------------------------------------------------------------
-
-## 7. Cross-Referencing Rules
-
-Use relative links:
-
-    See [Transcript Tables](03_workflow/03_02_transcript_tables.md).
-
-Do not use absolute GitHub URLs inside manuals.
+The ontology should guide splits, but the practical question is whether
+the file answers a distinct question.
 
 ------------------------------------------------------------------------
 
-## 8. Versioning the Manual
+## 7. Internal Cross-References
 
-Manual version should align with:
+Manuals should use references that survive later rendering choices.
 
--   Major software releases (X.0.0)
--   Structural manual changes (minor bump)
--   Typos or clarification edits (patch bump)
+If a project has no link-rewriting layer, relative Markdown links are
+acceptable:
 
-Manual version may be stored in:
+    See [Configuration](../02_operation/04_configuration.md).
 
--   00_outline.md
--   A dedicated VERSION.md
--   PDF front matter (for compiled distributions)
+If a project renders manual pages in an environment where Markdown links
+may be misinterpreted, use plain path-bearing references:
 
-------------------------------------------------------------------------
+    See Configuration (`docs/manual/02_operation/04_configuration.md`).
 
-## 9. Migration Protocol (Monolith → Modular)
-
-When refactoring an 800+ line manual:
-
-1.  Create `manual/` directory.
-
-2.  Extract logical sections into numbered files.
-
-3.  Create `00_outline.md`.
-
-4.  Validate internal links.
-
-5.  Archive original monolithic manual as:
-
-        manual_archive_vX_Y_Z.md
+Choose one convention per repository and document it in the manual prep
+overview or contribution notes.
 
 ------------------------------------------------------------------------
 
-## 10. Anti-Patterns to Avoid
+## 8. Source Grounding
 
--   One 1000-line Markdown file
--   Inconsistent numbering
--   Deep nesting (\>3 folder levels)
--   Mixing policy and protocol content
--   Embedding compilation YAML inside every section
+Manual prose should be grounded in current repository behavior.
 
-------------------------------------------------------------------------
+When sources conflict, use this precedence:
 
-## 11. Rationale
+1. current source code and tests
+2. generated examples and current run artifacts
+3. current configuration defaults
+4. current maintainer responses in prep files
+5. older README or manual prose
+6. archived drafts and chat history
 
-This modular approach enables:
-
--   Cleaner Git diffs
--   Easier collaboration
--   Incremental feature growth
--   Flexible presentation (CLI, PDF, Web)
--   Long-term maintainability
+Older documentation is useful as historical context, but it should not
+override current source behavior.
 
 ------------------------------------------------------------------------
 
-## 12. Future Extensions
+## 9. Prep Before Publication
 
-Separate protocol documents may define:
+Large manuals should not be drafted directly from a blank prompt into
+public manual files.
 
--   PDF compilation workflows
--   Zenodo packaging standards
--   Streamlit navigation integration
--   Automated TOC generation
+A better workflow is:
 
-------------------------------------------------------------------------
+1. create or refresh a manual prep workspace
+2. ask the assistant to sweep the repository and produce an object
+   inventory
+3. let the maintainer respond inside that Markdown inventory
+4. produce selection notes and a file plan
+5. create smaller drafting itineraries
+6. draft manual pages in serialized passes
+7. run a human-review sweep
+8. update outline, references, and export configuration
 
-## 13. Manual Export (to PDF)
-
-### 13.1 Encoding
-
-- **Encoding rule:** All manual .md files MUST be saved as UTF-8 (no BOM preferred).
-
-- **Forbidden characters:** Avoid “invisible” control characters from copy/paste (especially from PDFs/Word/Slack). If suspected, retype the line or paste via a plain-text intermediate.
-
-- **Normalization:** Prefer standard ASCII punctuation in headings/filenames; Unicode is allowed in body text, but keep it intentional.
-
-- **Optional check:** use `check_manual_chars.py` to:
-    - verify UTF-8 decodability
-    - flag C0/C1 control chars (except `\n`, `\t`)
-    - report the file + byte offset
-
-
-### 13.2 Header
-
-Include a `manual_pdf.yaml` under manual/ to:
-- specify formatting
-- toggle table of contents
-- ensure proper line wrapping (see below)
-
-The file templates/manual/`manual_pdf_template.yaml` can be modified as needed.
-
-### 13.3 Code Blocks
-
-Command/YAML lines auto-wrap if the below is included in `manual_pdf.yaml`:
-
-```yaml
-header-includes:
-  - \usepackage{fvextra}
-  - \fvset{breaklines=true,breakanywhere=true}
-```
-
-Nonetheless,
-
-- Keep command lines reasonably short when possible.
-- When a command is long, prefer a readable multi-line version, e.g.:
-
-```bash
-python -m pip install \
-  -i https://test.pypi.org/simple \
-  --extra-index-url https://pypi.org/simple \
-  psair
-```
-
-That improves both GitHub and PDF rendering, but the LaTeX wrapping is still desirable for edge cases (e.g., long URLs).
+This keeps the process inspectable and prevents chat-only decisions from
+becoming invisible.
 
 ------------------------------------------------------------------------
 
-## References
+## 10. Export
 
--   Pandoc Documentation (https://pandoc.org/)
--   CommonMark Specification (https://commonmark.org/)
--   Semantic Versioning (https://semver.org/)
--   Write the Docs Documentation Guide
-    (https://www.writethedocs.org/guide/)
+Manual export to PDF or other publication formats is intentionally
+separate from drafting policy.
+
+The export stage should happen after the authored manual structure,
+cross-references, references, and high-review items are stable.
+
+See the manual export documentation for format-specific guidance.
+
+------------------------------------------------------------------------
+
+## 11. Summary
+
+An IRIDIC manual is not only a folder of Markdown files. It is a
+structured documentation system with authored pages, optional generated
+views, and a traceable prep process.
+
+The public manual should be clean and navigable. The prep workspace can
+be messy, iterative, and richly annotated, because that is where the
+human and assistant preserve the reasoning that makes the final manual
+trustworthy.

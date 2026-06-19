@@ -1,391 +1,358 @@
-# IRIDIC Documentation Ontology Policy
+# Manual Ontology Policy
 
-## Overview
+## 1. Purpose
 
-This document defines the structural and conceptual framework for repository documentation within IRIDIC (Idiosyncratic Repository of Initialization & Development Itineraries for Codebases). The goal is to provide a unified, scalable system that supports:
+This document defines the IRIDIC ontology for repository manuals.
 
-1. **Developers** organizing and maintaining documentation efficiently
-2. **Users** accessing information at the appropriate level of detail
-3. **Automated systems** (e.g., Codex-like tools) generating and updating documentation programmatically
+The ontology separates:
 
-This framework is based on a dual-axis ontology:
+- **objects**: what is being documented
+- **views**: how that object is explained
 
-* **Objects**: What is being documented
-* **Views**: How the information is presented
+This separation supports:
 
+- modular user manuals
+- source-backed documentation generation
+- human review of high-risk claims
+- LLM-assisted drafting
+- generated views that can compose with authored pages
+
+The ontology is a drafting tool, not a rigid filing mandate. A page
+should exist only when it answers a distinct, useful question.
+
+------------------------------------------------------------------------
+
+## 2. Documentation Objects
+
+Objects are documentation targets.
+
+### Feature
+
+A feature is an important or cross-cutting concept that deserves
+prominent treatment early in the manual.
+
+Features may overlap with lower-level objects.
+
+Examples:
+
+- transcript tabularization as a central data-model concept
+- exact file name matching as a reproducibility safeguard
+- generated example I/O as a documentation-composition concept
+- word counting versus target vocabulary coverage as a methodological
+  distinction spanning multiple modules
+
+Use features when users need conceptual orientation before entering
+module, command, functionality, or workflow pages.
+
+### Module
+
+A module is a cohesive operational domain.
+
+Examples:
+
+- transcripts
+- templates
+- word counting
+- blinding
+
+Modules often group several commands that operate on shared data
+structures or serve a common workflow area.
+
+### Command
+
+A command is a discrete user-invokable operation.
+
+Commands may be CLI commands, web-app actions, or other explicit user
+operations.
+
+Examples:
+
+- `transcripts tabularize`
+- `words analyze`
+- `blinding encode`
+- `examples`
+
+Commands are the primary unit for operational instructions.
+
+### Functionality
+
+A functionality is reusable behavior that appears across multiple
+modules, commands, or workflows.
+
+Examples:
+
+- configuration sources and overrides
+- run provenance
+- blinding and unblinding
+- reliability selection and reselection
+- speaking-time rate calculation
+
+Functionality pages prevent repeated explanations across command pages.
+
+### Workflow
+
+A workflow is an applied multi-step procedure.
+
+Examples:
+
+- first local CLI run
+- transcription reliability workflow
+- monologic narrative analysis workflow
+- web-app example-package workflow
+
+Workflow pages should guide sequencing, decision points, and checks.
+They should link outward to command and functionality pages rather than
+reprinting every command reference.
+
+------------------------------------------------------------------------
+
+## 3. Dual Classification
+
+Some documentation targets legitimately belong to more than one object
+type.
+
+Examples:
+
+- blinding may be both a module and a cross-cutting functionality
+- an examples system may be a module, a command, and a workflow-like
+  collection
+- transcript tabularization may be both a command and a feature
+
+Dual classification is acceptable when each object view answers a
+different question.
+
+Avoid duplicating content. Use the more general page for conceptual
+framing and the more specific page for operational detail.
+
+------------------------------------------------------------------------
+
+## 4. Documentation Views
+
+Views define the explanatory stance of a page.
+
+### Quickstart
+
+Guiding question:
+
+> What do I do first?
+
+Use for brief, action-oriented orientation.
+
+Common contents:
+
+- one- to three-sentence purpose
+- minimal command or action
+- required inputs
+- primary outputs
+- immediate next step
+- links or references to deeper pages
+
+### Usage Guide
+
+Guiding question:
+
+> How do I use this correctly in ordinary work?
+
+Use for operational detail.
+
+Common contents:
+
+- expected file layout
+- command variants and flags
+- important configuration settings
+- input and output contracts
+- common mistakes
+- inspection or editing steps
+- recovery paths
+
+### Research Context
+
+Guiding question:
+
+> Why does this matter methodologically?
+
+Use for research rationale, interpretation, cautions, and limits.
+
+Common contents:
+
+- role in research workflows
+- methodological rationale
+- interpretation boundaries
+- relevant citations
+- validity or reliability cautions
+- TODO markers for claims needing review
+
+### Implementation Notes
+
+Guiding question:
+
+> How does this work under the hood?
+
+Use for technical transparency.
+
+Common contents:
+
+- source files
+- dispatch or execution flow
+- key functions or classes
+- data flow
+- validation and discovery behavior
+- failure modes
+- extension points
+
+Implementation Notes should be useful for troubleshooting and
+maintenance, but they should not narrate every helper function.
+
+### Generated or Composable Views
+
+Some views are generated from structured sources rather than authored
+directly.
+
+Example:
+
+    example_io
+
+Generated views may be composed with authored views through metadata,
+front matter, object IDs, command IDs, or another composition layer.
+
+Generated views are not replacements for authored Quickstart, Usage
+Guide, Research Context, or Implementation Notes pages. They answer a
+different question: what does the example, run artifact, or structured
+output show?
+
+------------------------------------------------------------------------
+
+## 5. View Matrix
+
+Use this matrix as a starting point.
+
+| Object type | Quickstart | Usage Guide | Research Context | Implementation Notes |
+| --- | --- | --- | --- | --- |
+| Feature | Integrated | Optional | Optional | Optional |
+| Module | Required | Optional | Required | Required |
+| Command | Required | Required | Optional | Required |
+| Functionality | Usually | Usually | Usually | Optional/Usually |
+| Workflow | Required | Required | Light/Required | Optional |
+
+Interpretation:
+
+- Features often work best as integrated pages rather than split view
+  files.
+- Modules usually need conceptual framing and architecture, while
+  detailed operational syntax often belongs to command pages.
+- Commands need operational coverage and enough implementation detail to
+  support troubleshooting.
+- Functionalities may need all views when they carry user-facing,
+  methodological, and technical consequences.
+- Workflows should be narrative and procedural; implementation details
+  are included only when they clarify the workflow.
+
+------------------------------------------------------------------------
+
+## 6. Non-Redundancy Rule
+
+Create a page only when it answers a non-redundant question.
+
+Do not create all possible views merely because the matrix permits them.
+
+Examples:
+
+- A command Research Context page is unnecessary if the module Research
+  Context already explains the methodological issue.
+- A module Usage Guide is unnecessary if all module-level operation is
+  better handled by command Usage Guides.
+- A feature page should not repeat full command syntax unless users need
+  that syntax for orientation.
+
+------------------------------------------------------------------------
+
+## 7. Object Discovery
+
+When sweeping a repository, look for objects in:
+
+- CLI registries, parser files, and dispatch tables
+- web-app action menus and handlers
+- source-code package structure
+- configuration schemas and defaults
+- generated examples and example manifests
+- tests
+- README files and existing manuals
+- data directories, templates, and output artifacts
+- maintainer notes
+
+The first output should be an object inventory, not drafted manual
+pages.
+
+The inventory should classify likely objects, cite source anchors, list
+recommended views, and surface uncertainties for human response.
+
+------------------------------------------------------------------------
+
+## 8. Human Review Flags
+
+Documentation objects and views should carry review priority when
+needed.
+
+High-review topics commonly include:
+
+- privacy and de-identification language
+- methodological claims
+- validation, reliability, and threshold interpretation
+- output interpretation
+- workflow-order recommendations
+- security or data-governance claims
+
+Medium-review topics commonly include:
+
+- command syntax
+- configuration defaults
+- output filenames
+- web-app availability
+- generated example layout
+
+Low-review topics commonly include:
+
+- navigation pages
+- technical composition notes
+- source-verified command summaries
+
+Review priority should follow the risk of misleading users, not the
+length of the page.
+
+------------------------------------------------------------------------
+
+## 9. Optional Metadata
+
+Manual pages may eventually use front matter to support composition.
+
+Example:
+
+```yaml
 ---
-
-## Core Ontology
-
-### 1. Objects (Documentation Targets)
-
-Objects define the *unit of documentation*. All documentation content must correspond to one of the following object types:
-
-#### 1.1 Modules
-
-A **module** is a cohesive operational domain containing related commands that act on a shared data representation.
-
-**Examples**
-
-* transcript module
-* cus module
-* words module
-
-**Purpose**
-
-* Provide high-level conceptual grouping
-* Describe system-level workflows and architecture
-
+object_type: command
+object_id: transcripts.tabularize
+module_id: transcripts
+view: quickstart
+view_order: 10
+source_manual: authored
 ---
-
-#### 1.2 Commands
-
-A **command** is a discrete, user-invokable operation (CLI or webapp action).
-
-**Examples**
-
-* `transcripts tabularize`
-* `cus analyze`
-* `words make`
-
-**Purpose**
-
-* Serve as the primary unit of user interaction
-* Provide complete operational documentation
-
----
-
-#### 1.3 Functionalities
-
-A **functionality** is a reusable, cross-cutting behavior applied across multiple modules or commands.
-
-**Examples**
-
-* blinding
-* reliability sampling
-* transcript parsing
-
-**Purpose**
-
-* Avoid duplication of shared concepts
-* Provide centralized explanations of recurring behaviors
-
----
-
-#### 1.4 Workflows
-
-A **workflow** is a multi-step applied process combining multiple commands and/or modules.
-
-**Examples**
-
-* minimal pipeline
-* full analysis pipeline
-* reliability workflow
-
-**Purpose**
-
-* Demonstrate real-world usage
-* Guide users through multi-step procedures
-
-#### 1.5 Features
-
-A **feature** is an aspect or component of the program whose importance and/or scope requires featured presentation early in the manual.
-
-Objects may be features if they require abstract descriptions that span across other objects, or even if they also map directly onto a lower-level.
-
-**Examples**
-
-* DIAAD transcript tables
-* Example I/O
-
-**Purpose**
-
-* Represent high-level, cross-cutting program components that matter early within documentation
-
----
-
-## 2. Views (Documentation Perspectives)
-
-Views define *how information is presented* for each object.
-
----
-
-### 2.1 Quickstart
-
-**Description**
-A minimal, action-oriented summary enabling immediate use.
-
-**Guiding Question**
-
-> What command do I run right now?
-
-**Contents**
-
-* One-line description
-* CLI command(s)
-* Required inputs
-* Outputs
-* Key settings (minimal)
-
----
-
-### 2.2 Usage Guide
-
-**Description**
-Detailed operational instructions covering all relevant options and configurations.
-
-**Guiding Question**
-
-> What options do I need and how do they change behavior?
-
-**Contents**
-
-* Expanded description
-* Arguments and configuration options
-* Variants and edge cases
-* Practical examples
-
----
-
-### 2.3 Research Context
-
-**Description**
-Methodological and scientific rationale for using the feature.
-
-**Guiding Question**
-
-> When and why should I use this in a study?
-
-**Contents**
-
-* Role in research workflows
-* Theoretical grounding
-* Best practices
-* Limitations and caveats
-
----
-
-### 2.4 Implementation Notes
-
-**Description**
-Technical explanation of internal behavior and system design.
-
-**Guiding Question**
-
-> How is this implemented and how could I modify it?
-
-**Contents**
-
-* Functions and execution flow
-* Data transformations
-* Assumptions and constraints
-* Failure modes and edge cases
-
----
-
-## 3. View Requirements by Object Type
-
-Not all objects require all views. The following matrix defines required vs optional views:
-
-| Object Type   | Quickstart | Usage Guide | Research Context | Implementation Notes |
-| ------------- | ---------- | ----------- | ---------------- | -------------------- |
-| Module        | Required   | Optional    | Required         | Required             |
-| Command       | Required   | Required    | Optional         | Required             |
-| Functionality | Required   | Usually     | Usually          | Usually              |
-| Workflow      | Required   | Required    | Light/Required   | Optional             |
-
-Each feature could be described in its own self-contained markdown file, but organizing this (loosely) based on the views described above may be beneficial.
-
----
-
-## 4. Design Principles
-
-### 4.1 Non-Redundancy
-
-Each view should answer a **distinct question**. Avoid duplicating content across views or object types.
-
----
-
-### 4.2 Hierarchical Clarity
-
-* **Modules** → define conceptual domains
-* **Commands** → define operations
-* **Functionalities** → define shared behaviors
-* **Workflows** → define real-world usage
-
----
-
-### 4.3 Boundary Enforcement
-
-Clear separation between views:
-
-* **Usage Guide** = how to use
-* **Implementation Notes** = how it works
-* **Research Context** = why it matters
-
----
-
-### 4.4 Hypermodularization with Discipline
-
-Documentation may be split into multiple files per object (e.g., one file per view) to support:
-
-* Webapp navigation
-* Incremental rendering
-* Selective reading (TL;DR vs deep dive)
-
-However:
-
-> Files should only exist if they provide non-redundant value.
-
----
-
-### 4.5 Predictable Micro-Structure
-
-All **Quickstart** sections should follow a consistent schema:
-
-```md
-**Description**
-Brief summary
-
-**Command**
-diaad ...
-
-**Inputs**
-- ...
-
-**Outputs**
-- ...
-
-**Key Settings**
-- ...
 ```
 
-This ensures:
+Generated views should use stable metadata when possible.
 
-* user clarity
-* machine readability
-* compatibility with automated documentation generation
+Authored pages should not adopt front matter piecemeal unless the
+repository has a composition layer that requires it. Add metadata in a
+dedicated composition pass.
 
----
+------------------------------------------------------------------------
 
-## 5. File Organization
+## 10. Summary
 
-### 5.1 Modules
+IRIDIC manuals are organized by object and view:
 
-```text
-manual/
-  modules/
-    transcript_module/
-      quickstart.md
-      research_context.md
-      implementation_notes.md
-      commands/
-        transcript_tabularize/
-          quickstart.md
-          usage_guide.md
-          implementation_notes.md
-```
+- objects identify what is being documented
+- views identify the reader question being answered
 
----
-
-### 5.2 Functionalities
-
-```text
-manual/
-  functionalities/
-    blinding/
-      quickstart.md
-      usage_guide.md
-      research_context.md
-      implementation_notes.md
-```
-
----
-
-### 5.3 Workflows
-
-```text
-manual/
-  workflows/
-    minimal_pipeline.md
-    full_pipeline.md
-```
-
-### 5.4 Features
-
-```text
-manual/
-  features/
-    transcript_tabularization.md
-    generated_example_io.md
-```
-
----
-
-## 6. Rationale
-
-This ontology is designed to:
-
-### 6.1 Support Multiple Audiences
-
-| Audience    | Needs                |
-| ----------- | -------------------- |
-| Users       | Quickstart, Usage    |
-| Researchers | Research Context     |
-| Developers  | Implementation Notes |
-
----
-
-### 6.2 Enable Automated Documentation (Codex Integration)
-
-The structured separation of:
-
-* objects
-* views
-* predictable schemas
-
-allows automated systems to:
-
-* parse source code
-* generate targeted documentation
-* update specific views without affecting others
-
----
-
-### 6.3 Scale with Project Complexity
-
-As projects grow:
-
-* new commands fit naturally into modules
-* shared logic is abstracted into functionalities
-* workflows demonstrate integration
-
----
-
-### 6.4 Maintain Clarity in Complex Systems
-
-By separating:
-
-* *what exists* (objects)
-* *how it is explained* (views)
-
-the system avoids:
-
-* monolithic documentation
-* duplicated explanations
-* user overwhelm
-
----
-
-## 7. Summary
-
-IRIDIC documentation is built on:
-
-* **Objects**: Module, Command, Functionality, Workflow
-* **Views**: Quickstart, Usage Guide, Research Context, Implementation Notes
-
-This structure provides:
-
-* clarity for users
-* maintainability for developers
-* compatibility with automated documentation systems
+This framework gives human maintainers and LLM assistants a shared map
+for sweeping a repository, planning files, drafting pages, and reviewing
+manual content without collapsing everything into one large document.
