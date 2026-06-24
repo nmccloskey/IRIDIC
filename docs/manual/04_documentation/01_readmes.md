@@ -142,7 +142,7 @@ PyPI**.
 Example:
 
 ``` bash
-pip install rascal-speech
+python -m pip install rascal-speech
 ```
 
 If the project recommends a specific Python version, environment
@@ -167,10 +167,10 @@ conda activate taalcr
 ### 2. Install TAALCR:
 ```bash
 # Install from PyPI
-pip install taalcr
+python -m pip install taalcr
 
 # or install the latest development version
-pip install git+https://github.com/nmccloskey/taalcr.git@main
+python -m pip install git+https://github.com/nmccloskey/taalcr.git@main
 ```
 
 ### 3. Install the spaCy transformer model
